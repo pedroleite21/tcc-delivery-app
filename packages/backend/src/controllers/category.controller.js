@@ -56,16 +56,16 @@ exports.findOne = (req, res) => {
     });
 };
 
-exports.findProductsById = (req, res) => {
+exports.findItemsById = (req, res) => {
   const { id } = req.params;
 
-  Category.findByPk(id, { include: ['products'] })
+  Category.findByPk(id, { include: ['items'] })
     .then((data) => {
-      res.send(data.products);
+      res.send(data.items);
     })
     .catch(() => {
       res.status(500).send({
-        message: `Error retriving products for the Category with id ${id}`,
+        message: `Error retriving items for the Category with id ${id}`,
       });
     });
 };

@@ -10,7 +10,7 @@ module.exports = (app) => {
 
   router.get('/:id', categories.findOne);
 
-  router.get('/:id/products', categories.findProductsById);
+  router.get('/:id/items', categories.findItemsById);
 
   app.use('/api/categories', router);
 };
