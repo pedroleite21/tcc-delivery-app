@@ -1,7 +1,6 @@
 const db = require('../models');
 
 const Category = db.categories;
-// const { Op } = db.sequelize;
 
 exports.create = (req, res) => {
   if (!req.body.name) {
@@ -24,6 +23,30 @@ exports.create = (req, res) => {
         message:
           err.message ||
           'Some error occurred while creating the Category',
+      });
+    });
+};
+
+exports.update = (req, res) => {
+  const { id } = req.params;
+
+  Category.update(req.body, {
+    where: { id },
+  })
+    .then((num) => {
+      if (num[0] === 1) {
+        res.send({
+          message: 'Category was updated successfully.',
+        });
+      } else {
+        res.status(400).send({
+          message: `Cannot update Category with id=${id}. Maybe Category was not found or req.body is empty!`,
+        });
+      }
+    })
+    .catch(() => {
+      res.status(500).send({
+        message: `Error updating Category with id=${id}`,
       });
     });
 };

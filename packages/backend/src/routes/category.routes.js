@@ -12,5 +12,7 @@ module.exports = (app) => {
 
   router.get('/:id/items', categories.findItemsById);
 
+  router.put('/:id', categories.update);
+
   app.use('/api/categories', router);
 };

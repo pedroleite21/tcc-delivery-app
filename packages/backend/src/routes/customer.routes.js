@@ -10,5 +10,11 @@ module.exports = (app) => {
 
   router.get('/:id/orders', customers.findOrdersById);
 
+  router.get('/:id/addresses', customers.findAddressesById);
+
+  router.post('/:id/addresses', customers.createAddress);
+
+  router.delete('/:id/addresses/:addressId', customers.deleteAddress);
+
   app.use('/api/customers', router);
 };

@@ -27,16 +27,7 @@ exports.findOne = (req, res) => {
   const { id } = req.params;
 
   Orders.findByPk(id, {
-    include: [
-      {
-        model: Item,
-        as: 'items',
-        attributes: ['id', 'name', 'baseValue'],
-        through: {
-          attributes: [],
-        },
-      },
-    ],
+    include: Item,
   })
     .then((data) => {
       res.send(data);
