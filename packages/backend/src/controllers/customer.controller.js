@@ -3,6 +3,10 @@ const db = require('../models');
 const Customer = db.customers;
 const Address = db.addresses;
 
+exports.signup = (req, res) => {
+  
+};
+
 exports.create = (req, res) => {
   if (!req.body.name) {
     res.status(400).send({
