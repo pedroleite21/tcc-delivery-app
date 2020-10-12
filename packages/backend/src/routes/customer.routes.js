@@ -1,20 +1,53 @@
 const express = require('express');
 const customers = require('../controllers/customer.controller');
+const { verifySignUp, authJwt } = require('../middleware');
 
 module.exports = (app) => {
+  app.use((req, res, next) => {
+    res.header(
+      'Access-Control-Allow-Headers',
+      'x-access-token, Origin, Content-Type, Accept',
+    );
+    next();
+  });
+
   const router = express.Router();
 
-  router.post('/', customers.create);
+  router.post(
+    '/signup',
+    [verifySignUp.checkDuplicateUsernameOrEmail],
+    customers.create,
+  );
 
-  router.get('/:id', customers.findOne);
+  router.post('/signin', customers.signIn);
 
-  router.get('/:id/orders', customers.findOrdersById);
+  router.post('/refreshtoken', customers.refreshToken);
 
-  router.get('/:id/addresses', customers.findAddressesById);
+  router.get('/:id', [authJwt.verifyTokens], customers.findOne);
 
-  router.post('/:id/addresses', customers.createAddress);
+  router.get(
+    '/:id/orders',
+    [authJwt.verifyTokens],
+    customers.findOrdersById,
+  );
 
-  router.delete('/:id/addresses/:addressId', customers.deleteAddress);
+  router.get(
+    '/:id/addresses',
+    [authJwt.verifyTokens],
+    customers.findAddressesById,
+  );
+
+  router.post(
+    '/:id/addresses',
+    [authJwt.verifyTokens],
+    customers.createAddress,
+  );
+
+  router.delete(
+    '/:id/addresses/:addressId',
+    [authJwt.verifyTokens],
+    customers.deleteAddress,
+  );
 
   app.use('/api/customers', router);
 };

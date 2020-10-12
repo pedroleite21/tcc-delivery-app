@@ -24,7 +24,6 @@ db.items = require('./item.model')(sequelize, Sequelize);
 db.order_items = require('./order_item.model')(sequelize, Sequelize);
 db.orders = require('./order.model')(sequelize, Sequelize);
 db.restaurants = require('./restaurant.model')(sequelize, Sequelize);
-db.role = require('./role.model.js')(sequelize, Sequelize);
 db.user = require('./user.model.js')(sequelize, Sequelize);
 
 db.categories.hasMany(db.items, { as: 'items' });
@@ -55,18 +54,5 @@ db.items.belongsToMany(db.orders, {
   foreignKey: 'orderId',
   otherKey: 'itemId',
 });
-
-db.role.belongsToMany(db.user, {
-  through: 'user_roles',
-  foreignKey: 'roleId',
-  otherKey: 'userId',
-});
-db.user.belongsToMany(db.role, {
-  through: 'user_roles',
-  foreignKey: 'userId',
-  otherKey: 'roleId',
-});
-
-db.ROLES = ['user', 'admin', 'moderator'];
 
 module.exports = db;

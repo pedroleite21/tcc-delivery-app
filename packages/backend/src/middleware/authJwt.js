@@ -26,6 +26,20 @@ function verifyTokens(req, res, next) {
   });
 }
 
+function isAdmin(req, res, next) {
+  User.findByPk(req.userId).then((user) => {
+    if (user.role === 'admin') {
+      next();
+      return;
+    }
+
+    res.status(403).send({
+      message: 'Require Admin Role!',
+    });
+  });
+}
+
 module.exports = {
   verifyTokens,
+  isAdmin,
 };

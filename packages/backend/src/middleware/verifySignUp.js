@@ -3,11 +3,11 @@
  */
 const db = require('../models');
 
-const { ROLES, user: User } = db;
+const { customers: Customers } = db;
 
 function checkDuplicateUsernameOrEmail(req, res, next) {
   // Email
-  User.findOne({
+  Customers.findOne({
     where: {
       email: req.body.email,
     },
@@ -23,21 +23,6 @@ function checkDuplicateUsernameOrEmail(req, res, next) {
   });
 }
 
-function checkRolesExisted(req, res, next) {
-  if (req.body.roles) {
-    req.body.roles.forEach((role) => {
-      if (ROLES.indexOf(role) === -1) {
-        res.status(400).send({
-          message: `Failed! Role does not exist = ${role}`,
-        });
-      }
-    });
-  }
-
-  next();
-}
-
 module.exports = {
   checkDuplicateUsernameOrEmail,
-  checkRolesExisted,
 };

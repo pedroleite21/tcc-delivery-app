@@ -1,30 +1,121 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const config = require('../config/auth.config');
+
 const db = require('../models');
 
 const Customer = db.customers;
 const Address = db.addresses;
 
-exports.signup = (req, res) => {
-  
-};
-
 exports.create = (req, res) => {
-  if (!req.body.name) {
+  if (!req.body.name && !req.body.email && !req.body.password) {
     res.status(400).send({
-      message: 'Customer name cannot be empty',
+      message: 'Fields cannot be empty!',
     });
   }
 
   const costumer = {
     name: req.body.name,
+    email: req.body.email,
+    password: bcrypt.hashSync(req.body.password, 8),
   };
 
   Customer.create(costumer)
     .then((data) => {
-      res.send(data);
+      const costumerData = data.get();
+
+      const token = jwt.sign(
+        { id: costumerData.id, email: costumerData.email },
+        config.secret,
+        {
+          expiresIn: 86400,
+        },
+      );
+
+      res.send({
+        accessToken: token,
+        id: costumerData.id,
+        message: 'Customer created!',
+      });
     })
     .catch((err) => {
       res.status(500).send({
         message: err.message || 'Error on creating Customer',
+      });
+    });
+};
+
+exports.signIn = (req, res) => {
+  Customer.findOne({
+    where: {
+      email: req.body.email,
+    },
+  })
+    .then((customer) => {
+      if (!customer) {
+        return res
+          .status(404)
+          .send({ message: 'Customer Not Found' });
+      }
+
+      const passwordIsValid = bcrypt.compareSync(
+        req.body.password,
+        customer.password,
+      );
+
+      if (!passwordIsValid) {
+        return res.status(401).send({
+          message: 'Invalid Password!',
+          accessToken: null,
+        });
+      }
+
+      const token = jwt.sign(
+        { id: customer.id, email: customer.email },
+        config.secret,
+        {
+          expiresIn: 86400,
+        },
+      );
+
+      return res.status(200).send({
+        id: customer.id,
+        accessToken: token,
+      });
+    })
+    .catch((error) => {
+      res.status(500).send({ message: error.message });
+    });
+};
+
+exports.refreshToken = (req, res) => {
+  const { id } = req.body;
+
+  Customer.findByPk(id)
+    .then((customer) => {
+      if (!customer) {
+        return res.status(404).send({
+          message: 'Customer Not Found',
+          accessToken: null,
+        });
+      }
+
+      const token = jwt.sign(
+        { id: customer.id, email: customer.email },
+        config.secret,
+        {
+          expiresIn: 86400,
+        },
+      );
+
+      return res.status(200).send({
+        id: customer.id,
+        accessToken: token,
+      });
+    })
+    .catch((error) => {
+      res.status(404).send({
+        message: error.message,
       });
     });
 };
@@ -34,7 +125,9 @@ exports.findOne = (req, res) => {
 
   Customer.findByPk(id)
     .then((data) => {
-      res.send(data);
+      const filterData = data.get();
+      delete filterData.password;
+      res.send(filterData);
     })
     .catch(() => {
       res.status(500).send({
