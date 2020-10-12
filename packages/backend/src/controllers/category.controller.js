@@ -70,7 +70,13 @@ exports.findOne = (req, res) => {
 
   Category.findByPk(id)
     .then((data) => {
-      res.send(data);
+      if (!data) {
+        return res.status(404).send({
+          message: 'Category not found',
+        });
+      }
+
+      return res.send(data);
     })
     .catch(() => {
       res.status(500).send({

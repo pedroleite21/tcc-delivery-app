@@ -21,21 +21,21 @@ function verifyTokens(req, res, next) {
         message: 'Unathorized!',
       });
     }
-    req.userId = decoded.id;
+    req.body.userId = decoded.id;
+    req.body.userEmail = decoded.email;
     next();
   });
 }
 
 function isAdmin(req, res, next) {
-  User.findByPk(req.userId).then((user) => {
-    if (user.role === 'admin') {
-      next();
-      return;
+  // eslint-disable-next-line consistent-return
+  User.findByPk(req.body.userId).then((user) => {
+    if (user.email !== req.body.userEmail || user.role !== 'admin') {
+      return res.status(403).send({
+        message: 'Require Admin Role!',
+      });
     }
-
-    res.status(403).send({
-      message: 'Require Admin Role!',
-    });
+    next();
   });
 }
 

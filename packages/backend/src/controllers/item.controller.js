@@ -49,6 +49,12 @@ exports.findOne = (req, res) => {
 
   Item.findByPk(id)
     .then((data) => {
+      if (!data) {
+        res.status(404).send({
+          message: 'Item not found',
+        });
+      }
+
       res.send(data);
     })
     .catch(() => {
