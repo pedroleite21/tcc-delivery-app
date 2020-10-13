@@ -30,7 +30,34 @@ exports.findOne = (req, res) => {
     include: Item,
   })
     .then((data) => {
-      res.send(data);
+      if (!data) {
+        return res.status(404).send({
+          message: 'Order not found!',
+        });
+      }
+      return res.send(data);
+    })
+    .catch(() => {
+      res.status(500).send({
+        message: `Error retriving Order with id ${id}`,
+      });
+    });
+};
+
+exports.updateStatus = (req, res) => {
+  const { id } = req.params;
+
+  Orders.findByPk(id)
+    .then((data) => {
+      if (!data) {
+        return res.status(404).send({
+          message: 'Order',
+        });
+      }
+
+      return res.send({
+        message: 'Updated order status',
+      });
     })
     .catch(() => {
       res.status(500).send({

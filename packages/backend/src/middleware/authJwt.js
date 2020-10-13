@@ -30,7 +30,7 @@ function verifyTokens(req, res, next) {
 function isAdmin(req, res, next) {
   // eslint-disable-next-line consistent-return
   User.findByPk(req.body.userId).then((user) => {
-    if (user.email !== req.body.userEmail || user.role !== 'admin') {
+    if (user.role !== 'admin') {
       return res.status(403).send({
         message: 'Require Admin Role!',
       });

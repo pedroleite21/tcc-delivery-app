@@ -32,6 +32,11 @@ db.items.belongsTo(db.categories, {
   as: 'category',
 });
 
+db.restaurants.hasOne(db.addresses, {
+  foreignKey: 'addressId',
+});
+db.addresses.belongsTo(db.restaurants);
+
 db.customers.hasMany(db.addresses, { as: 'addresses' });
 db.addresses.belongsTo(db.customers, {
   foreignKey: 'customerId',

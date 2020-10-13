@@ -7,6 +7,24 @@ const db = require('../models');
 const Customer = db.customers;
 const Address = db.addresses;
 
+exports.findAll = (req, res) => {
+  Customer.findAll({
+    attributes: {
+      exclude: ['password'],
+    },
+  })
+    .then((data) => {
+      res.send(data);
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message:
+          err.message ||
+          'Some error occured while retrieving the customers',
+      });
+    });
+};
+
 exports.create = (req, res) => {
   if (!req.body.name && !req.body.email && !req.body.password) {
     res.status(400).send({

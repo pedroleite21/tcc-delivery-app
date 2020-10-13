@@ -15,6 +15,8 @@ module.exports = (app) => {
 
   router.post('/refreshtoken', customers.refreshToken);
 
+  router.get('/', [authJwt.verifyTokens], customers.findAll);
+
   router.get('/:id', [authJwt.verifyTokens], customers.findOne);
 
   router.get(
