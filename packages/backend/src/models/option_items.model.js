@@ -1,24 +1,18 @@
 module.exports = (sequelize, Sequelize) => {
-  const Item = sequelize.define('item', {
+  const OptionItem = sequelize.define('option_item', {
     name: {
       type: Sequelize.STRING,
       allowNull: false,
     },
-    description: {
-      type: Sequelize.STRING,
-    },
-    image: {
-      type: Sequelize.STRING,
-    },
-    basePrice: {
+    addPrice: {
       type: Sequelize.DECIMAL(5, 2),
       defaultValue: '0.00',
     },
-    featured: {
+    paused: {
       type: Sequelize.BOOLEAN,
       defaultValue: 0,
     },
   });
 
-  return Item;
+  return OptionItem;
 };

@@ -3,6 +3,7 @@ const config = require('../config/auth.config.js');
 const db = require('../models');
 
 const User = db.user;
+const Costumer = db.customers;
 
 // eslint-disable-next-line consistent-return
 function verifyTokens(req, res, next) {
@@ -27,19 +28,44 @@ function verifyTokens(req, res, next) {
   });
 }
 
+function isCostumer(req, res, next) {
+  Costumer.findByPk(req.body.userId).then((user) => {
+    if (user) {
+      return next();
+    }
+
+    return res.status(403).send({
+      message: 'Are you a costumer?',
+    });
+  });
+}
+
 function isAdmin(req, res, next) {
-  // eslint-disable-next-line consistent-return
   User.findByPk(req.body.userId).then((user) => {
     if (user.role !== 'admin') {
       return res.status(403).send({
         message: 'Require Admin Role!',
       });
     }
-    next();
+    return next();
+  });
+}
+
+function isAdminOrModerator(req, res, next) {
+  User.findByPk(req.body.userId).then((user) => {
+    if (user.role === 'admin' || user.role === 'moderator') {
+      return next();
+    }
+
+    return res.status(403).send({
+      message: 'Require Admin or moderator Role!',
+    });
   });
 }
 
 module.exports = {
   verifyTokens,
   isAdmin,
+  isAdminOrModerator,
+  isCostumer,
 };

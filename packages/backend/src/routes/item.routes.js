@@ -13,6 +13,8 @@ module.exports = (app) => {
 
   router.get('/', [authJwt.verifyTokens], items.findAll);
 
+  router.get('/featured', [authJwt.verifyTokens], items.findFeatured);
+
   router.get('/:id', [authJwt.verifyTokens], items.findOne);
 
   app.use('/api/items', router);

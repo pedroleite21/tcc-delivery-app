@@ -19,7 +19,6 @@ if (process.env.NODE_ENV === 'development') {
   db.sequelize.sync({ force: true }).then(() => {
     initDb.createAdminUser();
   });
-  // db.sequelize.sync({ force: true });
 } else {
   db.sequelize.sync();
 }
@@ -37,11 +36,12 @@ app.use((_, res, next) => {
   next();
 });
 
+require('./src/routes/auth.routes')(app);
 require('./src/routes/category.routes')(app);
 require('./src/routes/customer.routes')(app);
 require('./src/routes/item.routes')(app);
 require('./src/routes/order.routes')(app);
-require('./src/routes/auth.routes')(app);
+require('./src/routes/upload.routes')(app);
 
 app.listen(3000, () => {
   console.log('Server is running on port 3000.');
