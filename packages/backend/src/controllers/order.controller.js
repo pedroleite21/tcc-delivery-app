@@ -4,6 +4,8 @@ const db = require('../models');
 const Item = db.items;
 const OrderItems = db.order_items;
 const Orders = db.orders;
+const OptionItems = db.option_items;
+const OrderOptionItems = db.order_option_items;
 
 exports.create = asyncHandler(async (req, res) => {
   const { items } = req.body;
@@ -37,7 +39,28 @@ exports.create = asyncHandler(async (req, res) => {
         quantity: item.qty,
       };
 
-      await OrderItems.create(orderItemsInfo);
+      const orderItem = await OrderItems.create(orderItemsInfo);
+
+      const { options } = item;
+      if (options && Array.isArray(options) && options.length > 0) {
+        // eslint-disable-next-line consistent-return
+        options.forEach(async (option) => {
+          const optionItem = await OptionItems.findByPk(option.id);
+          if (!optionItem) {
+            return res.status(400).send({
+              message: 'Non existing option',
+            });
+          }
+
+          const optionItemOrderInfo = {
+            orderItemId: orderItem.id,
+            orderOptionItemId: option.id,
+            quantity: option.qty,
+          };
+
+          await OrderOptionItems.create(optionItemOrderInfo);
+        });
+      }
     });
 
     return res.status(200).send({
@@ -57,16 +80,15 @@ exports.findOne = asyncHandler(async (req, res) => {
 
   try {
     const order = await Orders.findByPk(id, {
+      attributes: ['id', 'status', 'value'],
       include: [
         {
           model: Item,
           as: 'items',
-          required: false,
           attributes: ['id', 'name'],
           through: {
             model: OrderItems,
-            as: 'itemOrders',
-            attributes: ['quantity'],
+            attributes: ['quantity', 'id'],
           },
         },
       ],
@@ -77,7 +99,38 @@ exports.findOne = asyncHandler(async (req, res) => {
       });
     }
 
-    return res.send(order);
+    let newItems = order.get('items', { plain: true });
+    newItems = await Promise.all(
+      newItems.map(async (item) => {
+        const newItem = item;
+        const optionOrderItems = await OrderOptionItems.findAll({
+          where: {
+            orderItemId: newItem.order_item.id,
+          },
+        });
+
+        newItem.options = await Promise.all(
+          optionOrderItems.map(async (o) => {
+            const optionItem = await OptionItems.findByPk(
+              o.orderOptionItemId,
+            );
+
+            return {
+              quantity: o.quantity,
+              name: optionItem.name,
+              optionId: o.orderOptionItemId,
+            };
+          }),
+        );
+
+        return newItem;
+      }),
+    );
+
+    return res.send({
+      ...order.get({ plain: true }),
+      items: newItems,
+    });
   } catch (err) {
     return res.status(500).send({
       message: `Error retriving Order with id ${id}`,
@@ -102,7 +155,7 @@ exports.updateStatus = (req, res) => {
     })
     .catch(() => {
       res.status(500).send({
-        message: `Error retriving Order with id ${id}`,
+        message: `Error retriving Order with id ${id} `,
       });
     });
 };

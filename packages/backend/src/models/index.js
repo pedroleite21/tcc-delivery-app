@@ -30,10 +30,10 @@ db.option_items = require('./option_items.model')(
   Sequelize,
 );
 db.order_items = require('./order_item.model')(sequelize, Sequelize);
-// db.order_option_items = require('./order_options_item.model')(
-//   sequelize,
-//   Sequelize,
-// );
+db.order_option_items = require('./order_options_item.model')(
+  sequelize,
+  Sequelize,
+);
 db.orders = require('./order.model')(sequelize, Sequelize);
 db.restaurants = require('./restaurant.model')(sequelize, Sequelize);
 db.user = require('./user.model.js')(sequelize, Sequelize);
@@ -73,19 +73,18 @@ db.items_options.belongsTo(db.items, {
   as: 'item',
 });
 
-// db.order_option_items.hasMany(db.option_items, {
-//   as: 'options_items',
-// });
-// db.option_items.belongsTo(db.order_option_items, {
-//   foreignKey: 'optionsItemsId',
-//   as: 'order_option_item',
-// });
-
-// db.order_items.hasMany(db.order_option_items, { as: 'options' });
-// db.order_option_items.belongsTo(db.order_items, {
-//   foreignKey: 'orderItemId',
-//   as: 'order_item',
-// });
+db.option_items.belongsToMany(db.order_items, {
+  as: 'order_option_items',
+  foreignKey: 'orderOptionItemId',
+  otherKey: 'orderItemId',
+  through: db.order_option_items,
+});
+db.order_items.belongsToMany(db.option_items, {
+  as: 'order_option_items',
+  foreignKey: 'orderItemId',
+  otherKey: 'orderOptionItemId',
+  through: db.order_option_items,
+});
 
 db.orders.belongsToMany(db.items, {
   as: 'items',
