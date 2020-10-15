@@ -37,13 +37,13 @@ module.exports = (app) => {
 
   router.post(
     '/:id/addresses',
-    [authJwt.verifyTokens],
+    [authJwt.verifyTokens, authJwt.isCostumer],
     customers.createAddress,
   );
 
   router.delete(
     '/:id/addresses/:addressId',
-    [authJwt.verifyTokens],
+    [authJwt.verifyTokens, authJwt.isCostumer],
     customers.deleteAddress,
   );
 

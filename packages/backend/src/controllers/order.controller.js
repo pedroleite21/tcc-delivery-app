@@ -6,13 +6,28 @@ const OrderItems = db.order_items;
 const Orders = db.orders;
 const OptionItems = db.option_items;
 const OrderOptionItems = db.order_option_items;
+const Address = db.addresses;
+const OrderDelivery = db.orders_delivery;
+
+const ORDER_STATUS = [
+  'awaiting_confirmation',
+  'confirmed',
+  'on_route',
+  'delivered',
+];
 
 exports.create = asyncHandler(async (req, res) => {
-  const { items } = req.body;
+  const { items, delivery } = req.body;
 
   try {
+    if (!delivery.takeout && !delivery.addressId) {
+      return res.status(400).send({
+        message: 'A delivery address should be selected',
+      });
+    }
+
     if (!items) {
-      res.status(400).send({
+      return res.status(400).send({
         message: 'An order should have items',
       });
     }
@@ -20,6 +35,7 @@ exports.create = asyncHandler(async (req, res) => {
     const orderInfo = {
       ...req.body,
       customerId: req.body.userId,
+      takeout: delivery.takeout,
     };
 
     const order = await Orders.create(orderInfo);
@@ -63,6 +79,16 @@ exports.create = asyncHandler(async (req, res) => {
       }
     });
 
+    if (!delivery.takeout) {
+      const orderDeliveryInfo = {
+        takeout: delivery.takeout,
+        addressId: delivery.addressId,
+        orderAddId: order.id,
+      };
+
+      await OrderDelivery.create(orderDeliveryInfo);
+    }
+
     return res.status(200).send({
       orderId: order.id,
       message: 'Order created',
@@ -80,7 +106,7 @@ exports.findOne = asyncHandler(async (req, res) => {
 
   try {
     const order = await Orders.findByPk(id, {
-      attributes: ['id', 'status', 'value'],
+      attributes: ['id', 'status', 'value', 'takeout'],
       include: [
         {
           model: Item,
@@ -89,6 +115,21 @@ exports.findOne = asyncHandler(async (req, res) => {
           through: {
             model: OrderItems,
             attributes: ['quantity', 'id'],
+          },
+        },
+        {
+          model: Address,
+          as: 'addresses',
+          attributes: [
+            'id',
+            'name',
+            'address_1',
+            'address_2',
+            'locality',
+          ],
+          through: {
+            model: OrderDelivery,
+            attributes: ['takeout'],
           },
         },
       ],
@@ -132,30 +173,52 @@ exports.findOne = asyncHandler(async (req, res) => {
       items: newItems,
     });
   } catch (err) {
+    console.error(err);
     return res.status(500).send({
       message: `Error retriving Order with id ${id}`,
     });
   }
 });
 
-exports.updateStatus = (req, res) => {
+exports.updateStatus = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  const { status } = req.body;
 
-  Orders.findByPk(id)
-    .then((data) => {
-      if (!data) {
-        return res.status(404).send({
-          message: 'Order',
-        });
-      }
+  try {
+    const order = await Orders.findByPk(id);
+    if (!order || !status || ORDER_STATUS.indexOf(status) === -1) {
+      return res.status(404).send({
+        message: 'Error, verify parameters',
+      });
+    }
 
-      return res.send({
-        message: 'Updated order status',
-      });
-    })
-    .catch(() => {
-      res.status(500).send({
-        message: `Error retriving Order with id ${id} `,
-      });
+    order.status = status;
+    order.save();
+
+    return res.send({
+      message: 'Updated order status',
     });
-};
+  } catch (err) {
+    return res.status(500).send({
+      message: `Error retriving Order with id ${id} `,
+    });
+  }
+
+  // Orders.findByPk(id)
+  //   .then((data) => {
+  //     if (!data) {
+  //       return res.status(404).send({
+  //         message: 'Order',
+  //       });
+  //     }
+
+  //     return res.send({
+  //       message: 'Updated order status',
+  //     });
+  //   })
+  //   .catch(() => {
+  //     res.status(500).send({
+  //       message: `Error retriving Order with id ${id} `,
+  //     });
+  //   });
+});

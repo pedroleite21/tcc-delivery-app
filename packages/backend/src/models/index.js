@@ -35,6 +35,10 @@ db.order_option_items = require('./order_options_item.model')(
   Sequelize,
 );
 db.orders = require('./order.model')(sequelize, Sequelize);
+db.orders_delivery = require('./order_delivery.model')(
+  sequelize,
+  Sequelize,
+);
 db.restaurants = require('./restaurant.model')(sequelize, Sequelize);
 db.user = require('./user.model.js')(sequelize, Sequelize);
 
@@ -84,6 +88,19 @@ db.order_items.belongsToMany(db.option_items, {
   foreignKey: 'orderItemId',
   otherKey: 'orderOptionItemId',
   through: db.order_option_items,
+});
+
+db.orders.belongsToMany(db.addresses, {
+  as: 'addresses',
+  foreignKey: 'orderAddId',
+  otherKey: 'addressId',
+  through: db.orders_delivery,
+});
+db.addresses.belongsToMany(db.orders, {
+  as: 'orders_add',
+  foreignKey: 'addressId',
+  otherKey: 'orderAddId',
+  through: db.orders_delivery,
 });
 
 db.orders.belongsToMany(db.items, {

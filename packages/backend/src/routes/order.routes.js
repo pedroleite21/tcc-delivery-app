@@ -11,9 +11,13 @@ module.exports = (app) => {
     orders.create,
   );
 
-  router.get('/:id', orders.findOne);
+  router.get('/:id', [authJwt.verifyTokens], orders.findOne);
 
-  router.put('/status/:id', orders.updateStatus);
+  router.put(
+    '/status/:id',
+    [authJwt.verifyTokens, authJwt.isAdminOrModerator],
+    orders.updateStatus,
+  );
 
   app.use('/api/orders', router);
 };
