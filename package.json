@@ -30,6 +30,7 @@
   },
   "scripts": {
     "start": "cross-env NODE_ENV=development npm-run-all -p -l start:*",
-    "start:backend": "lerna exec --scope @delivery_app/backend -- yarn run start"
+    "start:backend": "lerna exec --scope @delivery_app/backend -- yarn run start",
+    "start:backend:prod": "cross-env NODE_ENV=production lerna exec --scope @delivery_app/backend -- yarn run start"
   }
 }
