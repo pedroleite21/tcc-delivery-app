@@ -17,6 +17,10 @@ const db = {};
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
+db.payments = require('./payment_methods.model')(
+  sequelize,
+  Sequelize,
+);
 db.addresses = require('./address.model')(sequelize, Sequelize);
 db.categories = require('./category.model')(sequelize, Sequelize);
 db.customers = require('./customer.model')(sequelize, Sequelize);
@@ -36,6 +40,10 @@ db.order_option_items = require('./order_options_item.model')(
 );
 db.orders = require('./order.model')(sequelize, Sequelize);
 db.orders_delivery = require('./order_delivery.model')(
+  sequelize,
+  Sequelize,
+);
+db.orders_payment = require('./order_payments.model')(
   sequelize,
   Sequelize,
 );
@@ -101,6 +109,19 @@ db.addresses.belongsToMany(db.orders, {
   foreignKey: 'addressId',
   otherKey: 'orderAddId',
   through: db.orders_delivery,
+});
+
+db.orders.belongsToMany(db.payments, {
+  as: 'payments',
+  foreignKey: 'orderPayId',
+  otherKey: 'paymentId',
+  through: db.orders_payment,
+});
+db.payments.belongsToMany(db.orders, {
+  as: 'orders_pay',
+  foreignKey: 'paymentId',
+  otherKey: 'orderPayId',
+  through: db.orders_payment,
 });
 
 db.orders.belongsToMany(db.items, {

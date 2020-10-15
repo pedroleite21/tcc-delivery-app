@@ -1,13 +1,15 @@
 const asyncHandler = require('express-async-handler');
 const db = require('../models');
 
-const Item = db.items;
-const OrderItems = db.order_items;
-const Orders = db.orders;
-const OptionItems = db.option_items;
-const OrderOptionItems = db.order_option_items;
 const Address = db.addresses;
+const Item = db.items;
+const OptionItems = db.option_items;
 const OrderDelivery = db.orders_delivery;
+const OrderItems = db.order_items;
+const OrderOptionItems = db.order_option_items;
+const OrderPayment = db.orders_payment;
+const Orders = db.orders;
+const Payments = db.payments;
 
 const ORDER_STATUS = [
   'awaiting_confirmation',
@@ -17,12 +19,18 @@ const ORDER_STATUS = [
 ];
 
 exports.create = asyncHandler(async (req, res) => {
-  const { items, delivery } = req.body;
+  const { items, delivery, payment } = req.body;
 
   try {
     if (!delivery.takeout && !delivery.addressId) {
       return res.status(400).send({
         message: 'A delivery address should be selected',
+      });
+    }
+
+    if (!payment) {
+      return res.status(400).send({
+        message: 'A payment method should be selected',
       });
     }
 
@@ -89,6 +97,21 @@ exports.create = asyncHandler(async (req, res) => {
       await OrderDelivery.create(orderDeliveryInfo);
     }
 
+    const paymentInfo = await Payments.findByPk(payment.paymentId);
+    if (!paymentInfo) {
+      return res.status(400).send({
+        message: 'Payment id not found',
+      });
+    }
+
+    const orderPaymentInfo = {
+      paymentId: payment.paymentId,
+      orderPayId: order.id,
+      change: payment.change,
+    };
+
+    await OrderPayment.create(orderPaymentInfo);
+
     return res.status(200).send({
       orderId: order.id,
       message: 'Order created',
@@ -130,6 +153,15 @@ exports.findOne = asyncHandler(async (req, res) => {
           through: {
             model: OrderDelivery,
             attributes: ['takeout'],
+          },
+        },
+        {
+          model: Payments,
+          as: 'payments',
+          attributes: ['id', 'name'],
+          through: {
+            model: OrderPayment,
+            attributes: ['change'],
           },
         },
       ],
@@ -203,22 +235,4 @@ exports.updateStatus = asyncHandler(async (req, res) => {
       message: `Error retriving Order with id ${id} `,
     });
   }
-
-  // Orders.findByPk(id)
-  //   .then((data) => {
-  //     if (!data) {
-  //       return res.status(404).send({
-  //         message: 'Order',
-  //       });
-  //     }
-
-  //     return res.send({
-  //       message: 'Updated order status',
-  //     });
-  //   })
-  //   .catch(() => {
-  //     res.status(500).send({
-  //       message: `Error retriving Order with id ${id} `,
-  //     });
-  //   });
 });

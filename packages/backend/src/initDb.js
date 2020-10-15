@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const db = require('./models');
 
 const User = db.user;
+const Payments = db.payments;
 
 const ROLE_ADMIN = 'admin';
 
@@ -20,6 +21,37 @@ function createAdminUser() {
     });
 }
 
+function populatePaymentMethods() {
+  Payments.create({
+    name: 'Dinheiro',
+  });
+
+  Payments.create({
+    name: 'Elo - Débito',
+  });
+
+  Payments.create({
+    name: 'Elo - Crédito',
+  });
+
+  Payments.create({
+    name: 'Visa - Débito',
+  });
+
+  Payments.create({
+    name: 'Visa - Crédito',
+  });
+
+  Payments.create({
+    name: 'Mastercard - Débito',
+  });
+
+  Payments.create({
+    name: 'Mastercard - Crédito',
+  });
+}
+
 module.exports = {
   createAdminUser,
+  populatePaymentMethods,
 };

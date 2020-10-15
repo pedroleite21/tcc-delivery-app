@@ -20,6 +20,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 if (process.env.NODE_ENV === 'development') {
   db.sequelize.sync({ force: true }).then(() => {
     initDb.createAdminUser();
+    initDb.populatePaymentMethods();
   });
 } else {
   db.sequelize.sync();
@@ -44,6 +45,7 @@ require('./src/routes/customer.routes')(app);
 require('./src/routes/item.routes')(app);
 require('./src/routes/order.routes')(app);
 require('./src/routes/upload.routes')(app);
+require('./src/routes/payment.routes')(app);
 
 const server = app.listen(3000, () => {
   console.log('Server is running on port 3000.');
