@@ -2,7 +2,7 @@ import axios from 'axios';
 
 export type LoginAsyncStorage = {
   accessToken: string | null;
-  role: string | null;
+  role: 'admin' | 'moderator' | null;
   userId: number | string | null;
 }
 

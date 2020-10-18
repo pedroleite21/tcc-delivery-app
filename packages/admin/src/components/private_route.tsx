@@ -17,10 +17,10 @@ export default function PrivateRoute(
 ) {
   const { isLogged } = useAuthContext();
 
-  // if (!isLogged) {
-  //   navigate('/admin/login');
-  //   return null;
-  // }
+  if (!isLogged) {
+    navigate('/admin/login');
+    return null;
+  }
 
   return (
     <AdminLayout title={title}>

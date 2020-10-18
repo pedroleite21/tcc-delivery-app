@@ -3,21 +3,20 @@ import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
-import Snackbar from '@material-ui/core/Snackbar';
 import TextField from '@material-ui/core/TextField';
 import FastFoodIcon from '@material-ui/icons/Fastfood';
 import Typography from '@material-ui/core/Typography';
 import { useForm } from 'react-hook-form';
 import { useMutation } from 'react-query';
-import { graphql, useStaticQuery, navigate } from 'gatsby';
+import { graphql, useStaticQuery } from 'gatsby';
 import { RouteComponentProps } from '@reach/router';
 import Img from 'gatsby-image';
 import { useSnackbar } from 'notistack';
 
 import styled from '../components/styled';
 import SEO from '../components/seo';
-import { setUserInfo, signIn } from '../api/login';
-import { response } from 'express';
+import { signIn } from '../api/login';
+import { useAuthContext } from '../contexts/auth_context';
 
 type SignInData = {
   email: string;
@@ -68,6 +67,7 @@ export default function SignIn(props: RouteComponentProps) {
       }`
   );
   const { enqueueSnackbar } = useSnackbar();
+  const { setUserInfo } = useAuthContext();
 
   const {
     errors, handleSubmit, register,
@@ -87,13 +87,11 @@ export default function SignIn(props: RouteComponentProps) {
         userId: id,
         role,
       });
-
-      navigate('/admin/home');
     },
     onError: (res) => {
       // @ts-ignore
       const message = res?.response?.data?.message;
-      enqueueSnackbar(message, { variant: 'error' });
+      enqueueSnackbar(message || 'Erro', { variant: 'error' });
     },
   });
 
