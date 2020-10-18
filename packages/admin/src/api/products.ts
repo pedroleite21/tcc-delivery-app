@@ -2,6 +2,23 @@ import { AxiosResponse } from 'axios';
 import api from './api';
 import { getUserInfo } from './login';
 
+export type OptionItems = {
+  addPrice: string;
+  id: string | number;
+  name: string;
+  paused: boolean;
+}
+
+export type ProductOption = {
+  id: string | number;
+  items: OptionItems[];
+  maxItems: number | null;
+  minItems: number | null;
+  name: string;
+  required: boolean;
+  type: 'single' | 'multiple' | 'range';
+}
+
 type ProductResponse = {
   basePrice: string;
   categoryId: string | number;
@@ -9,6 +26,7 @@ type ProductResponse = {
   featured: boolean;
   id: string | number;
   name: string;
+  options: ProductOption[];
 }
 
 export async function getProduct(_, id: string | number) {

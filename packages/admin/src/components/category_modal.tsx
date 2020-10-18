@@ -125,6 +125,7 @@ export default function CategoryModal(props: ModalCategoryProps) {
           disabled={isLoading}
           onClick={handleSubmit}
           variant="contained"
+          disableElevation
         >
           {isLoading
             ? <CircularProgress size={20} />
