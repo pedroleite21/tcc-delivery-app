@@ -25,6 +25,7 @@ type ProductResponse = {
   description: string;
   featured: boolean;
   id: string | number;
+  image: string | null;
   name: string;
   options: ProductOption[];
 }
@@ -38,6 +39,34 @@ export async function getProduct(_, id: string | number) {
       headers: {
         'x-access-token': accessToken,
       }
+    },
+  );
+
+  return data;
+}
+
+type UploadImageResponse = {
+  imageUrl: string;
+  message: string;
+  success: boolean;
+}
+
+export async function uploadImage(file: File[] | string) {
+  const { accessToken } = getUserInfo();
+
+  if (!file || typeof file === 'string') return;
+
+  const formData = new FormData();
+  formData.append('image', file[0]);
+
+  const { data } = await api.post<{}, AxiosResponse<UploadImageResponse>>(
+    '/upload',
+    formData,
+    {
+      headers: {
+        'content-type': 'multipart/form-data',
+        'x-access-token': accessToken,
+      },
     },
   );
 

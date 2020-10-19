@@ -12,7 +12,7 @@ import { RouteComponentProps } from '@reach/router';
 import { useQuery } from 'react-query';
 import { useForm, Controller } from 'react-hook-form';
 import styled from '../components/styled';
-import { getProduct } from '../api/products';
+import { getProduct, uploadImage } from '../api/products';
 import { getCategories } from '../api/categories';
 import ImageUploader from '../components/image_uploader';
 import ProductOptions from '../components/product_options';
@@ -55,8 +55,10 @@ export default function Product(props: RouteComponentProps & { productId?: strin
   } = useForm<FoodTypes>({ defaultValues: initData });
   const [initialImage, setInitialImage] = React.useState<string>(undefined);
 
-  const onSubmit = (data) => {
-    console.log(data);
+  const onSubmit = async (data: FoodTypes) => {
+    if (data.image && product.image !== data.image) {
+      const { imageUrl } = await uploadImage(data.image);
+    }
   }
 
   const { data: categories, isLoading } = useQuery('categories', getCategories);
@@ -71,10 +73,11 @@ export default function Product(props: RouteComponentProps & { productId?: strin
   React.useEffect(() => {
     if (product) {
       console.log(product);
-      setValue('name', product.name);
+      setInitialImage(product.image);
       setValue('categoryId', product.categoryId);
       setValue('description', product.description);
       setValue('featured', product.featured);
+      setValue('name', product.name);
     }
   }, [product]);
 
