@@ -14,7 +14,7 @@ export const LOGIN_KEY_INITIAL = {
 };
 
 const api = axios.create({
-  baseURL: process.env.API_URL || 'http://localhost:3000/api',
+  baseURL: process.env.GATSBY_API_URL || 'http://localhost:3000/api',
 });
 
 // let isRefreshing = false;
