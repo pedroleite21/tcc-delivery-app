@@ -60,7 +60,7 @@ async function startServer() {
   uploadRoutes(app);
   paymentRoutes(app);
 
-  app.listen(3000, (error) => {
+  app.listen(process.env.PORT || 3000, (error) => {
     if (error) {
       console.error('❌ Oops...');
       console.error(error);
