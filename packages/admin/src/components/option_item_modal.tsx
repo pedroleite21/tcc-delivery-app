@@ -13,7 +13,9 @@ import Grid from '@material-ui/core/Grid';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import styled from './styled';
-import { ProductOption } from '../api/products';
+import { OptionItems, ProductOption } from '../api/products';
+import Typography from '@material-ui/core/Typography';
+import { check } from 'prettier';
 
 const StyledDiv = styled.div(({ theme }) => ({
   display: 'flex',
@@ -28,6 +30,25 @@ const selectionTypes = [
   { label: 'Intervalo', id: 'range' },
 ];
 
+const optionInitItems: OptionItems[] = [
+  {
+    addPrice: "0.00",
+    id: 0,
+    name: "Opção",
+    paused: false,
+  },
+];
+
+type InfoType = Omit<ProductOption, 'items' | 'id'>;
+
+const initForm: InfoType = {
+  maxItems: 0,
+  minItems: 0,
+  name: '',
+  required: false,
+  type: 'single',
+};
+
 type OptionItemModalProps = {
   onClose?: () => void;
   open?: boolean;
@@ -36,30 +57,63 @@ type OptionItemModalProps = {
 export default function OptionItemModal(props: OptionItemModalProps) {
   const { open = false, option, onClose } = props;
 
+  const [info, setInfo] = React.useState<InfoType>(initForm);
+  const [items, setItems] = React.useState<OptionItems[]>(optionInitItems);
+
+  React.useEffect(() => {
+    if (option) {
+      console.log(option);
+      const { id, items, ...rest } = option;
+      setItems(items);
+      setInfo(rest);
+    }
+  }, []);
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, checked } = event.target;
+
+    const newValue = name === 'required' ? checked : value;
+
+    setInfo((prevInfo) => ({
+      ...prevInfo,
+      [name]: newValue,
+    }));
+  };
+
+  const addOption = () => {
+    setItems((prevItems) => [...prevItems, ...optionInitItems]);
+  }
+
   const modalTitle = option ? 'Editar opção' : 'Criar nova opção';
 
   const handleClose = () => {
+    setInfo(initForm);
+    setItems(optionInitItems);
     onClose?.();
   }
 
   return (
     <Dialog
-      aria-label="Editar opção"
+      aria-labelledby="option-dialog-title"
       fullWidth
       open={open}
       scroll="paper"
       onClose={handleClose}
     >
-      <DialogTitle id="scroll-dialog-title">
+      <DialogTitle id="option-dialog-title">
         {modalTitle}
       </DialogTitle>
       <DialogContent dividers>
         <Grid container spacing={2}>
           <Grid item xs={12}>
             <TextField
-              id="outlined-basic"
+              fullWidth
+              id="option-name"
               label="Título da opção"
+              onChange={handleChange}
+              value={info.name}
               variant="outlined"
+              name="name"
             />
           </Grid>
           <Grid item xs={12}>
@@ -69,9 +123,10 @@ export default function OptionItemModal(props: OptionItemModalProps) {
                 <TextField
                   id="option-select"
                   label="Tipo de seleção"
-                  name="selection"
+                  name="type"
+                  onChange={handleChange}
                   select
-                  value="single"
+                  value={info.type}
                   variant="outlined"
                 >
                   {selectionTypes.map((v, index) => (
@@ -87,19 +142,50 @@ export default function OptionItemModal(props: OptionItemModalProps) {
             <FormControlLabel
               control={
                 <Checkbox
-                  // checked={state.checkedB}
-                  // onChange={handleChange}
-                  name="required"
+                  checked={info.required}
                   color="primary"
+                  name="required"
+                  onChange={handleChange}
                 />
               }
               label="Opção requerida"
             />
           </Grid>
+          <Grid container item xs={12} spacing={2}>
+            <Grid item xs={6}>
+              <Typography variant="button">Item</Typography>
+            </Grid>
+            <Grid item xs={4}>
+              <Typography variant="button">Preço Adicional</Typography>
+            </Grid>
+            <Grid item xs={1} />
+            <Grid item xs={1} />
+            {items.map((v, i) => (
+              <>
+                <Grid item xs={6}>
+                  <TextField
+                    label="Nome"
+                    value={v.name}
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={4}>
+                  <TextField
+                    label="Nome"
+                    value={v.addPrice}
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={1} />
+                <Grid item xs={1} />
+              </>
+            ))}
+          </Grid>
           <Grid item xs={12}>
             <Button
               color="secondary"
               startIcon={<AddIcon />}
+              onClick={addOption}
             >
               Adicionar Item
             </Button>

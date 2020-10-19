@@ -6,9 +6,17 @@
   "author": "Pedro Leite <pedrohleite@icloud.com>",
   "license": "MIT",
   "scripts": {
-    "start": "nodemon server.js"
+    "clean": "rimraf ./dist",
+    "start-server": "node -r dotenv/config ./dist/server.js",
+    "start:prod": "npm-run-all clean transpile start-server",
+    "start": "nodemon server.js",
+    "transpile": "babel . --out-dir ./dist"
   },
   "dependencies": {
+    "@babel/cli": "^7.12.1",
+    "@babel/core": "^7.12.3",
+    "@babel/plugin-proposal-class-properties": "^7.12.1",
+    "@babel/preset-env": "^7.12.1",
     "argon2": "^0.27.0",
     "aws-sdk": "^2.771.0",
     "bcryptjs": "^2.4.3",
@@ -26,6 +34,7 @@
     "socket.io": "^2.3.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.4"
+    "nodemon": "^2.0.4",
+    "rimraf": "^3.0.2"
   }
 }

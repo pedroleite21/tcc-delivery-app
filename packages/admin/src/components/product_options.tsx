@@ -63,7 +63,7 @@ export default function ProductOptions(props: ProductOptionsProps) {
     setModalOpen(false);
   }
 
-  const handleChange = (panel: string | number) => (event: React.ChangeEvent<{}>, isExpanded: boolean) => {
+  const handleChange = (panel: string | number) => (_, isExpanded: boolean) => {
     setExpanded(isExpanded ? panel : false);
   };
 
