@@ -12,7 +12,7 @@ import { RouteComponentProps } from '@reach/router';
 import { useQuery } from 'react-query';
 import { useForm, Controller } from 'react-hook-form';
 import styled from '../components/styled';
-import { getProduct, uploadImage } from '../api/products';
+import { addProduct, getProduct, ProductOption, uploadImage } from '../api/products';
 import { getCategories } from '../api/categories';
 import ImageUploader from '../components/image_uploader';
 import ProductOptions from '../components/product_options';
@@ -28,12 +28,12 @@ const StyledForm = styled.form(({ theme }) => ({
 }));
 
 type FoodTypes = {
-  basePrice?: string;
-  categoryId?: string | number;
-  description?: string;
-  featured?: boolean;
-  image?: File[] | string;
-  name?: string;
+  basePrice: string;
+  categoryId: string | number;
+  description: string;
+  featured: boolean;
+  image: File[] | string;
+  name: string;
 };
 
 const initData = {
@@ -48,17 +48,40 @@ export default function Product(props: RouteComponentProps & { productId?: strin
   const { productId } = props;
 
   const {
+    errors,
     register,
     handleSubmit,
     setValue,
     control,
   } = useForm<FoodTypes>({ defaultValues: initData });
   const [initialImage, setInitialImage] = React.useState<string>(undefined);
+  const [itemOptions, setItemOptions] = React.useState<ProductOption[]>(null);
 
   const onSubmit = async (data: FoodTypes) => {
-    if (data.image && product.image !== data.image) {
-      const { imageUrl } = await uploadImage(data.image);
+    try {
+      if (productId) {
+        console.log('editar');
+      } else {
+        const imageData = await uploadImage(data.image);
+
+        await addProduct({
+          ...data,
+          basePrice: '20.90',
+          image: imageData ? imageData.imageUrl : null,
+          itemOptions,
+        });
+      }
+    } catch (err) {
+      console.log(err);
     }
+
+    // console.log(data, product);
+    // if (data.image
+    //   && product.image !== data.image
+    // ) {
+    //   console.log('vim pra cá');
+    //   // const { imageUrl } = await uploadImage(data.image);
+    // }
   }
 
   const { data: categories, isLoading } = useQuery('categories', getCategories);
@@ -78,6 +101,10 @@ export default function Product(props: RouteComponentProps & { productId?: strin
       setValue('description', product.description);
       setValue('featured', product.featured);
       setValue('name', product.name);
+      if (product.options) {
+        console.log('oi');
+        setItemOptions(product.options);
+      }
     }
   }, [product]);
 
@@ -119,6 +146,7 @@ export default function Product(props: RouteComponentProps & { productId?: strin
               <Controller
                 as={
                   <TextField
+                    error={errors.name !== undefined}
                     fullWidth
                     id="product-name"
                     label="Nome"
@@ -127,6 +155,7 @@ export default function Product(props: RouteComponentProps & { productId?: strin
                 }
                 name="name"
                 control={control}
+                rules={{ required: true }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -134,11 +163,13 @@ export default function Product(props: RouteComponentProps & { productId?: strin
                 <Controller
                   as={
                     <TextField
-                      id="product-category"
-                      name="categoryId"
-                      select
-                      label="Categoria"
+                      error={errors.categoryId !== undefined}
                       fullWidth
+                      id="product-category"
+                      label="Categoria"
+                      name="categoryId"
+                      required
+                      select
                       variant="outlined"
                     >
                       {categories.map((option) => (
@@ -150,6 +181,7 @@ export default function Product(props: RouteComponentProps & { productId?: strin
                   }
                   name="categoryId"
                   control={control}
+                  rules={{ required: true }}
                 />
               )}
             </Grid>
@@ -209,7 +241,10 @@ export default function Product(props: RouteComponentProps & { productId?: strin
       <Typography variant="h6" gutterBottom>
         Opções
       </Typography>
-      <ProductOptions options={product?.options || []} />
+      <ProductOptions
+        options={itemOptions || []}
+        onOptionsChange={(d) => setItemOptions(d)}
+      />
     </>
   );
 }

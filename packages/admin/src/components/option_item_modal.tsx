@@ -12,15 +12,12 @@ import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
+import Typography from '@material-ui/core/Typography';
+import update from 'immutability-helper';
 import styled from './styled';
 import { OptionItems, ProductOption } from '../api/products';
-import Typography from '@material-ui/core/Typography';
-import { check } from 'prettier';
 
-const StyledDiv = styled.div(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  flexWrap: 'wrap',
+const StyledDiv = styled(Grid)(({ theme }) => ({
   marginTop: theme.spacing(2),
 }));
 
@@ -51,18 +48,18 @@ const initForm: InfoType = {
 
 type OptionItemModalProps = {
   onClose?: () => void;
+  onSave?: (p: ProductOption) => void;
   open?: boolean;
   option?: ProductOption;
 };
 export default function OptionItemModal(props: OptionItemModalProps) {
-  const { open = false, option, onClose } = props;
+  const { open = false, option, onClose, onSave } = props;
 
   const [info, setInfo] = React.useState<InfoType>(initForm);
   const [items, setItems] = React.useState<OptionItems[]>(optionInitItems);
 
   React.useEffect(() => {
     if (option) {
-      console.log(option);
       const { id, items, ...rest } = option;
       setItems(items);
       setInfo(rest);
@@ -81,7 +78,10 @@ export default function OptionItemModal(props: OptionItemModalProps) {
   };
 
   const addOption = () => {
-    setItems((prevItems) => [...prevItems, ...optionInitItems]);
+    setItems((prevItems) => {
+      const newItems = update(prevItems, { $push: [...optionInitItems] });
+      return newItems;
+    });
   }
 
   const modalTitle = option ? 'Editar opção' : 'Criar nova opção';
@@ -91,6 +91,26 @@ export default function OptionItemModal(props: OptionItemModalProps) {
     setItems(optionInitItems);
     onClose?.();
   }
+
+  const handleSave = () => {
+    onSave?.({
+      ...info,
+      id: null,
+      items,
+    });
+    setInfo(initForm);
+    setItems(optionInitItems);
+  }
+
+  const handleOptionChange = (i: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    setItems((prevItems) => {
+      const newItems = update(prevItems, {
+        [i]: { $merge: { [name]: value } }
+      });
+      return newItems;
+    });
+  };
 
   return (
     <Dialog
@@ -119,22 +139,59 @@ export default function OptionItemModal(props: OptionItemModalProps) {
           <Grid item xs={12}>
             <FormControl component="fieldset">
               <FormLabel component="legend">Quantos itens podem ser escolhidos?</FormLabel>
-              <StyledDiv>
-                <TextField
-                  id="option-select"
-                  label="Tipo de seleção"
-                  name="type"
-                  onChange={handleChange}
-                  select
-                  value={info.type}
-                  variant="outlined"
-                >
-                  {selectionTypes.map((v, index) => (
-                    <MenuItem key={`sel-${index}`} value={v.id}>
-                      {v.label}
-                    </MenuItem>
-                  ))}
-                </TextField>
+              <StyledDiv item container xs={12} spacing={1}>
+                <Grid item xs={5}>
+                  <TextField
+                    id="option-select"
+                    label="Tipo de seleção"
+                    name="type"
+                    onChange={handleChange}
+                    select
+                    value={info.type}
+                    variant="outlined"
+                  >
+                    {selectionTypes.map((v, index) => (
+                      <MenuItem key={`sel-${index}`} value={v.id}>
+                        {v.label}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+                {info.type !== 'single' && (
+                  <>
+                    <Grid item xs={3}>
+                      <TextField
+                        id="min-items"
+                        label="Min."
+                        name="minItems"
+                        onChange={handleChange}
+                        type="number"
+                        value={info.minItems}
+                        variant="outlined"
+                        InputLabelProps={{ shrink: true }}
+                      />
+                    </Grid>
+                    <Grid
+                      item
+                      xs={1}
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      <Typography variant="overline">à</Typography>
+                    </Grid>
+                    <Grid item xs={3}>
+                      <TextField
+                        id="max-items"
+                        label="Máx."
+                        name="maxItems"
+                        onChange={handleChange}
+                        type="number"
+                        value={info.maxItems}
+                        variant="outlined"
+                        InputLabelProps={{ shrink: true }}
+                      />
+                    </Grid>
+                  </>
+                )}
               </StyledDiv>
             </FormControl>
           </Grid>
@@ -158,22 +215,28 @@ export default function OptionItemModal(props: OptionItemModalProps) {
             <Grid item xs={4}>
               <Typography variant="button">Preço Adicional</Typography>
             </Grid>
-            <Grid item xs={1} />
+            <Grid item xs={1}>
+              <Typography variant="button">Pausado</Typography>
+            </Grid>
             <Grid item xs={1} />
             {items.map((v, i) => (
               <>
                 <Grid item xs={6}>
                   <TextField
-                    label="Nome"
-                    value={v.name}
                     fullWidth
+                    label="Nome"
+                    name="name"
+                    onChange={handleOptionChange(i)}
+                    value={v.name}
                   />
                 </Grid>
                 <Grid item xs={4}>
                   <TextField
-                    label="Nome"
-                    value={v.addPrice}
                     fullWidth
+                    label="Preço adicional"
+                    name="addPrice"
+                    onChange={handleOptionChange(i)}
+                    value={v.addPrice}
                   />
                 </Grid>
                 <Grid item xs={1} />
@@ -200,6 +263,7 @@ export default function OptionItemModal(props: OptionItemModalProps) {
           color="primary"
           variant="contained"
           disableElevation
+          onClick={handleSave}
         >
           Salvar
         </Button>

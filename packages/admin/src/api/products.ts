@@ -25,9 +25,9 @@ type ProductResponse = {
   description: string;
   featured: boolean;
   id: string | number;
-  image: string | null;
+  image?: string | null;
   name: string;
-  options: ProductOption[];
+  options?: ProductOption[];
 }
 
 export async function getProduct(_, id: string | number) {
@@ -45,6 +45,25 @@ export async function getProduct(_, id: string | number) {
   return data;
 }
 
+interface AddProductInterface extends Omit<ProductResponse, 'id' | 'options'> {
+  itemOptions?: ProductOption[];
+}
+type AddProductProps = AddProductInterface;
+
+export async function addProduct(data: AddProductProps) {
+  const { accessToken } = getUserInfo();
+
+  return await api.post(
+    '/items',
+    data,
+    {
+      headers: {
+        'x-access-token': accessToken,
+      }
+    }
+  )
+}
+
 type UploadImageResponse = {
   imageUrl: string;
   message: string;
@@ -54,7 +73,7 @@ type UploadImageResponse = {
 export async function uploadImage(file: File[] | string) {
   const { accessToken } = getUserInfo();
 
-  if (!file || typeof file === 'string') return;
+  if (!file || typeof file === 'string' || file.length === 0) return;
 
   const formData = new FormData();
   formData.append('image', file[0]);

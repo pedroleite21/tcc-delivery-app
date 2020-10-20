@@ -19,6 +19,7 @@ exports.createItem = (req, res) => {
     categoryId: req.body.categoryId,
     description: req.body.description,
     featured: req.body.featured,
+    image: req.body.image,
     name: req.body.name,
   };
 

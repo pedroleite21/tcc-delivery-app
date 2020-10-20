@@ -9,16 +9,11 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Grid from '@material-ui/core/Grid';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-import ListItemAvatar from '@material-ui/core/ListItemAvatar';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
 import PlusIcon from '@material-ui/icons/Add';
-import TextField from '@material-ui/core/TextField';
-import DeleteIcon from '@material-ui/icons/Delete';
-import PauseIcon from '@material-ui/icons/Pause';
 import PencilIcon from '@material-ui/icons/Edit';
 import Typography from '@material-ui/core/Typography';
+import update from 'immutability-helper';
 import { ProductOption } from '../api/products';
 import styled from './styled';
 import OptionItemModal from './option_item_modal';
@@ -44,14 +39,20 @@ const StyledListItem = styled(ListItem)(({ theme }) => ({
 
 type ProductOptionsProps = {
   options: ProductOption[];
+  onOptionsChange: (d: ProductOption[]) => void;
 }
 
 export default function ProductOptions(props: ProductOptionsProps) {
-  const { options } = props;
+  const { options: initialOptions, onOptionsChange } = props;
+  const [options, setOptions] = React.useState<ProductOption[]>(initialOptions);
   const [expanded, setExpanded] = React.useState<string | number | false>(false);
 
   const [isModalOpen, setModalOpen] = React.useState<boolean>(false);
   const [selectedOption, setSelectedOption] = React.useState<ProductOption | null>(null);
+
+  React.useEffect(() => {
+    setOptions(initialOptions);
+  }, [initialOptions]);
 
   const openModal = (index?: number) => {
     setSelectedOption(typeof index === 'number' ? options[index] : null);
@@ -66,6 +67,22 @@ export default function ProductOptions(props: ProductOptionsProps) {
   const handleChange = (panel: string | number) => (_, isExpanded: boolean) => {
     setExpanded(isExpanded ? panel : false);
   };
+
+  const saveOptionsItens = (d: ProductOption) => {
+    if (d.id) {
+      console.log('merge');
+    } else {
+      setOptions((prevOptions) => {
+        const newOptions = update(
+          prevOptions,
+          { $push: [d] }
+        );
+        onOptionsChange?.(newOptions);
+        return newOptions;
+      });
+    }
+    setModalOpen(false);
+  }
 
   return (
     <>
@@ -82,11 +99,11 @@ export default function ProductOptions(props: ProductOptionsProps) {
         </Grid>
         <Grid item xs={12}>
           {options.length > 0 && (
-            options.map(({ id, name, items }, index) => (
+            options.map(({ name, items }, index) => (
               <Accordion
-                expanded={expanded === id}
+                expanded={expanded === index}
                 key={`options-${index}`}
-                onChange={handleChange(id)}
+                onChange={handleChange(index)}
                 variant="outlined"
               >
                 <AccordionSummary
@@ -99,7 +116,7 @@ export default function ProductOptions(props: ProductOptionsProps) {
                   >
                     {name}
                   </FlexTypography>
-                  {expanded === id && (
+                  {expanded === index && (
                     <IconButton
                       aria-label="Editar opção"
                       onFocus={(event) => event.stopPropagation()}
@@ -135,6 +152,7 @@ export default function ProductOptions(props: ProductOptionsProps) {
         onClose={closeModal}
         open={isModalOpen}
         option={selectedOption}
+        onSave={saveOptionsItens}
       />
     </>
   );
