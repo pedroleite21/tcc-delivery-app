@@ -32,7 +32,7 @@ async function startServer() {
   app.use(bodyParser.urlencoded({ extended: true }));
 
   if (process.env.NODE_ENV === 'development') {
-    db.sequelize.sync({ force: true }).then(() => {
+    db.sequelize.sync().then(() => {
       initDb.createAdminUser();
       initDb.populatePaymentMethods();
     });
@@ -64,13 +64,12 @@ async function startServer() {
   });
 
   const io = socketIo(server);
-  const admin = io.of('/admin');
 
   authRoutes(app);
   categoryRoutes(app);
   customerRoutes(app);
   itemRoutes(app);
-  orderRoutes(app, admin);
+  orderRoutes(app, io);
   uploadRoutes(app);
   paymentRoutes(app);
 }

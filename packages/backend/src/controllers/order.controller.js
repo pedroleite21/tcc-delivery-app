@@ -117,7 +117,7 @@ exports.create = asyncHandler(async (req, res, next, socket) => {
       message: 'Order created',
     });
 
-    socket.emit('new_order', order.id);
+    socket.of('/admin').emit('new_order', order.id);
 
     return resReturn;
   } catch (err) {
@@ -216,27 +216,42 @@ exports.findOne = asyncHandler(async (req, res) => {
   }
 });
 
-exports.updateStatus = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const { status } = req.body;
+exports.updateStatus = asyncHandler(
+  async (req, res, next, socket) => {
+    const { id } = req.params;
+    const { status } = req.body;
 
-  try {
-    const order = await Orders.findByPk(id);
-    if (!order || !status || ORDER_STATUS.indexOf(status) === -1) {
-      return res.status(404).send({
-        message: 'Error, verify parameters',
+    try {
+      const order = await Orders.findByPk(id);
+      if (!order || !status || ORDER_STATUS.indexOf(status) === -1) {
+        return res.status(404).send({
+          message: 'Error, verify parameters',
+        });
+      }
+
+      order.status = status;
+      order.save();
+
+      const resResult = res.send({
+        message: 'Updated order status',
+      });
+
+      if (status === 'confirmed' || status === 'on_route') {
+        const orderInfo = {
+          id: order.id,
+          status,
+        };
+
+        socket
+          .of(`/user/${order.customerId}`)
+          .emit('order_status', JSON.stringify(orderInfo));
+      }
+
+      return resResult;
+    } catch (err) {
+      return res.status(500).send({
+        message: `Error retriving Order with id ${id} `,
       });
     }
-
-    order.status = status;
-    order.save();
-
-    return res.send({
-      message: 'Updated order status',
-    });
-  } catch (err) {
-    return res.status(500).send({
-      message: `Error retriving Order with id ${id} `,
-    });
-  }
-});
+  },
+);

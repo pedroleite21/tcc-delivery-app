@@ -6,8 +6,6 @@ import socketIOClient from 'socket.io-client';
 
 const socket_url = process.env.GATSBY_API_URL || 'http://localhost:3000';
 const socket = socketIOClient(`${socket_url}/admin`);
-
-console.log(socket);
 const message_key = 'new_order';
 
 interface AuthContextInterface extends Partial<Omit<LoginAsyncStorage, 'accessToken'>> {
