@@ -2,13 +2,13 @@ const express = require('express');
 const orders = require('../controllers/order.controller');
 const { authJwt } = require('../middleware');
 
-module.exports = (app) => {
+module.exports = (app, adminSocket) => {
   const router = express.Router();
 
   router.post(
     '/',
     [authJwt.verifyTokens, authJwt.isCostumer],
-    orders.create,
+    (...args) => orders.create(...args, adminSocket),
   );
 
   router.get('/:id', [authJwt.verifyTokens], orders.findOne);

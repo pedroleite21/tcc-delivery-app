@@ -1,14 +1,15 @@
-const dotenv = require('dotenv');
-const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const dotenv = require('dotenv');
+const express = require('express');
 const path = require('path');
+const socketIo = require('socket.io');
 
 let rootEnv;
-if (process.env.NODE_ENV === 'development') {
-  rootEnv = path.join(__dirname, '../', '../', '.env');
-} else {
+if (process.env.NODE_ENV === 'production') {
   rootEnv = path.join(__dirname, '../', '../', '../', '.env');
+} else {
+  rootEnv = path.join(__dirname, '../', '../', '.env');
 }
 dotenv.config({ path: rootEnv });
 
@@ -52,15 +53,7 @@ async function startServer() {
     next();
   });
 
-  authRoutes(app);
-  categoryRoutes(app);
-  customerRoutes(app);
-  itemRoutes(app);
-  orderRoutes(app);
-  uploadRoutes(app);
-  paymentRoutes(app);
-
-  app.listen(process.env.PORT || 3000, (error) => {
+  const server = app.listen(process.env.PORT || 3000, (error) => {
     if (error) {
       console.error('❌ Oops...');
       console.error(error);
@@ -69,6 +62,17 @@ async function startServer() {
 
     console.info('Server is running on port 3000.');
   });
+
+  const io = socketIo(server);
+  const admin = io.of('/admin');
+
+  authRoutes(app);
+  categoryRoutes(app);
+  customerRoutes(app);
+  itemRoutes(app);
+  orderRoutes(app, admin);
+  uploadRoutes(app);
+  paymentRoutes(app);
 }
 
 startServer();

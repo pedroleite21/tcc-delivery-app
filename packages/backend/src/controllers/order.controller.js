@@ -18,7 +18,7 @@ const ORDER_STATUS = [
   'delivered',
 ];
 
-exports.create = asyncHandler(async (req, res) => {
+exports.create = asyncHandler(async (req, res, next, socket) => {
   const { items, delivery, payment } = req.body;
 
   try {
@@ -112,10 +112,14 @@ exports.create = asyncHandler(async (req, res) => {
 
     await OrderPayment.create(orderPaymentInfo);
 
-    return res.status(200).send({
+    const resReturn = res.status(200).send({
       orderId: order.id,
       message: 'Order created',
     });
+
+    socket.emit('new_order', order.id);
+
+    return resReturn;
   } catch (err) {
     return res.status(500).send({
       message:
