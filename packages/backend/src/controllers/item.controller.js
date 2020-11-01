@@ -110,6 +110,7 @@ exports.findFeatured = (req, res) => {
         [Op.eq]: true,
       },
     },
+    order: [['updatedAt', 'DESC']],
   })
     .then((data) => {
       res.send(data);

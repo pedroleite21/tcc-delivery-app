@@ -5,8 +5,7 @@ import { LoginAsyncStorage } from '../api/api';
 import socketIOClient from 'socket.io-client';
 
 const socket_url = process.env.GATSBY_API_URL || 'http://localhost:3000';
-const socket = socketIOClient(`${socket_url}/admin`);
-const message_key = 'new_order';
+const MESSAGE_KEY = 'new_order';
 
 interface AuthContextInterface extends Partial<Omit<LoginAsyncStorage, 'accessToken'>> {
   isLoading?: boolean;
@@ -27,10 +26,7 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
   const [isLogged, setIsLogged] = React.useState<boolean>(false);
   const [userId, setUserId] = React.useState<string | null | number>(null);
   const [role, setRole] = React.useState<'admin' | 'moderator' | null>(null);
-
-  function initSocket() {
-    socket.on(message_key, (received) => alert('Message received: '+ received))
-  }
+  const socketRef = React.useRef(null);
 
   const setUserInfo = React.useCallback((d: LoginAsyncStorage) => {
     loginSetUserInfo(d);
@@ -53,8 +49,30 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
 
   React.useEffect(() => {
     if (isLogged) {
-      initSocket()
+      const socket = socketIOClient(`${socket_url}/admin`);
+      socketRef.current = socket;
+      socket.connect();
+
+      socket.on(MESSAGE_KEY, (received) =>
+        alert('Message received: ' + received),
+      );
+
+      socket.on('disconnect', (reason) => {
+        if (reason === 'io server disconnect') {
+          return socket.connect();
+        }
+      });
+    } else if (socketRef.current) {
+      socketRef.current.close();
+      socketRef.current = null;
     }
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.close();
+        socketRef.current = null;
+      }
+    };
   }, [isLogged]);
 
   return (

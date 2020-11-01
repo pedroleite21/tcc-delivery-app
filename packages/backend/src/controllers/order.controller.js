@@ -133,7 +133,14 @@ exports.findOne = asyncHandler(async (req, res) => {
 
   try {
     const order = await Orders.findByPk(id, {
-      attributes: ['id', 'status', 'value', 'takeout'],
+      attributes: [
+        'id',
+        'status',
+        'value',
+        'takeout',
+        'createdAt',
+        'updatedAt',
+      ],
       include: [
         {
           model: Item,

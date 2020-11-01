@@ -32,7 +32,7 @@ async function startServer() {
   app.use(bodyParser.urlencoded({ extended: true }));
 
   if (process.env.NODE_ENV === 'development') {
-    db.sequelize.sync().then(() => {
+    db.sequelize.sync({ force: true }).then(() => {
       initDb.createAdminUser();
       initDb.populatePaymentMethods();
     });

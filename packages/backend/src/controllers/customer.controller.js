@@ -6,6 +6,7 @@ const db = require('../models');
 
 const Customer = db.customers;
 const Address = db.addresses;
+const Order = db.orders;
 
 exports.findAll = (req, res) => {
   Customer.findAll({
@@ -157,9 +158,14 @@ exports.findOne = (req, res) => {
 exports.findOrdersById = (req, res) => {
   const { id } = req.params;
 
-  Customer.findByPk(id, { include: ['orders'] })
+  Order.findAll({
+    where: {
+      customerId: id,
+    },
+    order: [['createdAt', 'DESC']],
+  })
     .then((data) => {
-      res.send(data.orders);
+      res.send(data);
     })
     .catch(() => {
       res.status(500).send({

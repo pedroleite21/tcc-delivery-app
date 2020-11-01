@@ -1,6 +1,7 @@
 const db = require('../models');
 
 const Category = db.categories;
+const Items = db.items;
 
 exports.create = (req, res) => {
   if (!req.body.name) {
@@ -88,9 +89,14 @@ exports.findOne = (req, res) => {
 exports.findItemsById = (req, res) => {
   const { id } = req.params;
 
-  Category.findByPk(id, { include: ['items'] })
+  Items.findAll({
+    where: {
+      categoryId: id,
+    },
+    order: [['name', 'ASC']],
+  })
     .then((data) => {
-      res.send(data.items);
+      res.send(data);
     })
     .catch(() => {
       res.status(500).send({
@@ -98,11 +104,3 @@ exports.findItemsById = (req, res) => {
       });
     });
 };
-
-// exports.update = (req, res) => {
-//   const { id } = req.params;
-
-//   Category.update(req.body, {
-//     where
-//   })
-// };
