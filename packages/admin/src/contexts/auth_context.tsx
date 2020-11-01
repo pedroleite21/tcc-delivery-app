@@ -23,7 +23,7 @@ type AuthContextProviderProps = {
 
 export function AuthContextProvider({ children }: AuthContextProviderProps) {
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
-  const [isLogged, setIsLogged] = React.useState<boolean>(false);
+  const [isLogged, setIsLogged] = React.useState<boolean>(true);
   const [userId, setUserId] = React.useState<string | null | number>(null);
   const [role, setRole] = React.useState<'admin' | 'moderator' | null>(null);
   const socketRef = React.useRef(null);
