@@ -111,6 +111,7 @@ exports.findFeatured = (req, res) => {
       },
     },
     order: [['updatedAt', 'DESC']],
+    limit: 5,
   })
     .then((data) => {
       res.send(data);

@@ -2,16 +2,28 @@ import * as React from 'react';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import {
-  Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis
+  Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis
 } from 'recharts';
+import parseISO from 'date-fns/parseISO';
+import format from 'date-fns/format';
+import groupBy from 'lodash.groupby';
+import { useQuery } from 'react-query';
 import useHourCallback from '../components/use_hour_callback';
 import styled from '../components/styled';
 import { useTheme } from '@material-ui/core/styles';
+import { getOngoingOrders, getTodaysOrders, Order } from '../api/orders';
+import OrdersCards from '../components/orders_cards';
+
+function parseHour(date: string) {
+  const dateObject = parseISO(date);
+
+  return format(dateObject, "HH':00'");
+}
 
 const OrdersDiv = styled(Paper)(({ theme }) => ({
   display: 'flex',
   flexFlow: 'row',
-  marginBottom: theme.spacing(2),
+  marginBottom: theme.spacing(3),
   overflow: 'hidden',
 }));
 
@@ -30,30 +42,39 @@ const ChartDiv = styled.div(({ theme }) => ({
   width: '70%',
 }));
 
-const data = [
-  {
-    name: '09:00', value: 2,
-  },
-  {
-    name: '10:00', value: 5,
-  },
-  {
-    name: '11:00', value: 5,
-  },
-  {
-    name: '12:00', value: 10,
-  },
-  {
-    name: '13:00', value: 1,
-  },
-];
-
 export default function Dashboard() {
-  const [ordersData, setOrdersData] = React.useState(data);
+  const [ordersData, setOrdersData] = React.useState([]);
+  const [ongoingOrders, setOngoingOrders] = React.useState({});
+
+  const { data: todaysOrders, refetch } = useQuery('todays_orders', getTodaysOrders, {
+    onSuccess: ({ rows }) => {
+      const ordersGrouped = groupBy(rows, (item: Order) => parseHour(item.createdAt));
+
+      const data = Object.keys(ordersGrouped).map((v) => {
+        const { length } = ordersGrouped[v];
+
+        return {
+          name: v,
+          value: length,
+        };
+      });
+
+      setOrdersData(data);
+    }
+  });
+
+  useQuery('ongoing_orders', getOngoingOrders, {
+    onSuccess: (data) => {
+      const ordersGrouped = groupBy(data, 'status');
+
+      setOngoingOrders(ordersGrouped);
+    },
+  })
+
   const theme = useTheme();
 
   function getOrders() {
-    console.log('oi');
+    refetch();
   }
 
   useHourCallback(getOrders);
@@ -66,9 +87,11 @@ export default function Dashboard() {
             variant="h2"
             style={{ color: theme.palette.primary.main }}
           >
-            2
+            {todaysOrders?.count}
           </Typography>
-          <Typography>Pedidos realizados hoje.</Typography>
+          <Typography>
+            {todaysOrders?.count > 1 ? 'Pedidos realizados' : 'Pedido realizado'} hoje.
+          </Typography>
         </NumberOrders>
         <ChartDiv>
           <ResponsiveContainer
@@ -80,14 +103,12 @@ export default function Dashboard() {
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="value" fill={theme.palette.secondary.main} />
+              <Bar dataKey="value" fill={theme.palette.secondary.main} maxBarSize={40} />
             </BarChart>
           </ResponsiveContainer>
         </ChartDiv>
       </OrdersDiv>
-      <Typography component="h2" variant="h5">
-        Pedidos em andamento
-      </Typography>
+      <OrdersCards data={ongoingOrders} />
     </>
   );
 }

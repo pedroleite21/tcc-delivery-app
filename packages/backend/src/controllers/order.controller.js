@@ -1,5 +1,8 @@
 const asyncHandler = require('express-async-handler');
+const moment = require('moment');
 const db = require('../models');
+
+const { Op } = db.Sequelize;
 
 const Address = db.addresses;
 const Item = db.items;
@@ -262,3 +265,131 @@ exports.updateStatus = asyncHandler(
     }
   },
 );
+
+exports.findOrdersDay = asyncHandler(async (req, res) => {
+  const day = moment();
+  const startOfDay = day.startOf('day').toDate();
+  const endOfDay = day.endOf('day').toDate();
+
+  Orders.findAndCountAll({
+    where: {
+      createdAt: {
+        [Op.gt]: startOfDay,
+        [Op.lt]: endOfDay,
+      },
+    },
+  })
+    .then((data) => {
+      res.send(data);
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message:
+          err.message ||
+          "Some error occured while retrieving today's orders",
+      });
+    });
+});
+
+exports.findOngoingOrders = asyncHandler(async (req, res) => {
+  try {
+    const ongoingOrders = await Orders.findAll({
+      where: {
+        status: {
+          [Op.in]: ['awaiting_confirmation', 'confirmed', 'on_route'],
+        },
+      },
+      order: [['createdAt', 'ASC']],
+      attributes: [
+        'id',
+        'status',
+        'value',
+        'takeout',
+        'createdAt',
+        'updatedAt',
+      ],
+      include: [
+        {
+          model: Item,
+          as: 'items',
+          attributes: ['id', 'name'],
+          through: {
+            model: OrderItems,
+            attributes: ['quantity', 'id'],
+          },
+        },
+        {
+          model: Address,
+          as: 'addresses',
+          attributes: [
+            'id',
+            'name',
+            'address_1',
+            'address_2',
+            'locality',
+          ],
+          through: {
+            model: OrderDelivery,
+            attributes: ['takeout'],
+          },
+        },
+        {
+          model: Payments,
+          as: 'payments',
+          attributes: ['id', 'name'],
+          through: {
+            model: OrderPayment,
+            attributes: ['change'],
+          },
+        },
+      ],
+    });
+
+    let orders = ongoingOrders.map((el) => el.get({ plain: true }));
+
+    orders = await Promise.all(
+      orders.map(async (order) => {
+        let newItems = order.items;
+
+        newItems = await Promise.all(
+          newItems.map(async (item) => {
+            const newItem = item;
+            const optionOrderItems = await OrderOptionItems.findAll({
+              where: {
+                orderItemId: newItem.order_item.id,
+              },
+            });
+
+            newItem.options = await Promise.all(
+              optionOrderItems.map(async (o) => {
+                const optionItem = await OptionItems.findByPk(
+                  o.orderOptionItemId,
+                );
+
+                return {
+                  quantity: o.quantity,
+                  name: optionItem.name,
+                  optionId: o.orderOptionItemId,
+                };
+              }),
+            );
+
+            return newItem;
+          }),
+        );
+
+        return {
+          ...order,
+          items: newItems,
+        };
+      }),
+    );
+
+    return res.send(orders);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send({
+      message: `Error retriving ongoing orders`,
+    });
+  }
+});

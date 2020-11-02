@@ -19,5 +19,17 @@ module.exports = (app, socket) => {
     (...args) => orders.updateStatus(...args, socket),
   );
 
+  router.get(
+    '/history/today',
+    [authJwt.verifyTokens, authJwt.isAdminOrModerator],
+    orders.findOrdersDay,
+  );
+
+  router.get(
+    '/history/ongoing',
+    [authJwt.verifyTokens, authJwt.isAdminOrModerator],
+    orders.findOngoingOrders,
+  );
+
   app.use('/api/orders', router);
 };
