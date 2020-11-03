@@ -15,6 +15,7 @@ exports.signup = (req, res) => {
   }
 
   return User.create({
+    name: req.body.name,
     email: req.body.email,
     password: bcrypt.hashSync(req.body.password, 8),
     role: ROLE_MODERATOR,
@@ -103,6 +104,23 @@ exports.refreshToken = (req, res) => {
     })
     .catch((error) => {
       res.status(404).send({
+        message: error.message,
+      });
+    });
+};
+
+exports.getModerators = (req, res) => {
+  User.findAll({
+    attributes: ['name', 'id', 'email'],
+    where: {
+      role: ROLE_MODERATOR,
+    },
+  })
+    .then((data) => {
+      return res.send(data);
+    })
+    .catch((error) => {
+      return res.status(404).send({
         message: error.message,
       });
     });

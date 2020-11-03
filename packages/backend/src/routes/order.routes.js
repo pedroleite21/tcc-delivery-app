@@ -11,6 +11,12 @@ module.exports = (app, socket) => {
     (...args) => orders.create(...args, socket),
   );
 
+  router.get(
+    '/',
+    [authJwt.verifyTokens, authJwt.isAdminOrModerator],
+    orders.findAll,
+  );
+
   router.get('/:id', [authJwt.verifyTokens], orders.findOne);
 
   router.put(

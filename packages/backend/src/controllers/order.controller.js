@@ -5,6 +5,7 @@ const db = require('../models');
 const { Op } = db.Sequelize;
 
 const Address = db.addresses;
+const Customers = db.customers;
 const Item = db.items;
 const OptionItems = db.option_items;
 const OrderDelivery = db.orders_delivery;
@@ -222,6 +223,126 @@ exports.findOne = asyncHandler(async (req, res) => {
     console.error(err);
     return res.status(500).send({
       message: `Error retriving Order with id ${id}`,
+    });
+  }
+});
+
+function getPagination(page, size) {
+  const limit = size ? +size : 5;
+  const offset = page ? page * limit : 0;
+
+  return { limit, offset };
+}
+
+function getPagingData(data, page, limit) {
+  const { count: totalItems } = data;
+  const currentPage = page ? +page : 0;
+  const totalPages = Math.ceil(totalItems / limit);
+
+  return { totalItems, totalPages, currentPage };
+}
+
+exports.findAll = asyncHandler(async (req, res) => {
+  const { page, size, status } = req.query;
+  const { limit, offset } = getPagination(page, size);
+  const condition = status ? { status: { [Op.eq]: status } } : null;
+
+  try {
+    const data = await Orders.findAndCountAll({
+      where: condition,
+      limit,
+      offset,
+      order: [['createdAt', 'DESC']],
+      include: [
+        {
+          model: Item,
+          as: 'items',
+          attributes: ['id', 'name'],
+          through: {
+            model: OrderItems,
+            attributes: ['quantity', 'id'],
+          },
+        },
+        {
+          model: Address,
+          as: 'addresses',
+          attributes: [
+            'id',
+            'name',
+            'address_1',
+            'address_2',
+            'locality',
+          ],
+          through: {
+            model: OrderDelivery,
+            attributes: ['takeout'],
+          },
+        },
+        {
+          model: Payments,
+          as: 'payments',
+          attributes: ['id', 'name'],
+          through: {
+            model: OrderPayment,
+            attributes: ['change'],
+          },
+        },
+      ],
+    });
+
+    let orders = data.rows.map((el) => el.get({ plain: true }));
+    orders = await Promise.all(
+      orders.map(async (order) => {
+        let newItems = order.items;
+
+        newItems = await Promise.all(
+          newItems.map(async (item) => {
+            const newItem = item;
+            const optionOrderItems = await OrderOptionItems.findAll({
+              where: {
+                orderItemId: newItem.order_item.id,
+              },
+            });
+
+            newItem.options = await Promise.all(
+              optionOrderItems.map(async (o) => {
+                const optionItem = await OptionItems.findByPk(
+                  o.orderOptionItemId,
+                );
+
+                return {
+                  quantity: o.quantity,
+                  name: optionItem.name,
+                  optionId: o.orderOptionItemId,
+                };
+              }),
+            );
+
+            return newItem;
+          }),
+        );
+
+        const customer = await Customers.findByPk(order.customerId, {
+          attributes: ['name'],
+        });
+
+        return {
+          ...order,
+          items: newItems,
+          customer,
+        };
+      }),
+    );
+
+    const pagingData = getPagingData(data, page, limit);
+
+    return res.send({
+      ...pagingData,
+      orders,
+    });
+  } catch (err) {
+    return res.status(500).send({
+      message: `Error retriving Orders`,
     });
   }
 });

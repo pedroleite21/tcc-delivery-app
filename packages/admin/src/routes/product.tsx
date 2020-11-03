@@ -16,6 +16,7 @@ import { addProduct, getProduct, ProductOption, uploadImage } from '../api/produ
 import { getCategories } from '../api/categories';
 import ImageUploader from '../components/image_uploader';
 import ProductOptions from '../components/product_options';
+import NumberTextField from '../components/number_text_field';
 
 const StyledDivider = styled(Divider)(({ theme }) => ({
   marginBottom: theme.spacing(2),
@@ -185,19 +186,18 @@ export default function Product(props: RouteComponentProps & { productId?: strin
                 />
               )}
             </Grid>
-            {/* <Grid item xs={12}>
+            <Grid item xs={12}>
               <TextField
                 fullWidth
                 id="product-price"
-                inputRef={register}
                 label="Preço"
                 name="price"
                 variant="outlined"
                 InputProps={{
-                  inputComponent: NumberFormatCustom as any,
+                  inputComponent: NumberTextField as any,
                 }}
               />
-            </Grid> */}
+            </Grid>
             <Grid item xs={12}>
               <Controller
                 as={

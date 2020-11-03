@@ -9,6 +9,7 @@ const ROLE_ADMIN = 'admin';
 function createAdminUser() {
   User.create({
     email: process.env.ADMIN_EMAIL,
+    name: 'Administrador - Restaurante',
     password: bcrypt.hashSync(process.env.ADMIN_PASSWORD, 8),
     role: ROLE_ADMIN,
   })

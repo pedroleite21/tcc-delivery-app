@@ -7,7 +7,7 @@ module.exports = (app) => {
     [
       authJwt.verifyTokens,
       authJwt.isAdmin,
-      verifySignUp.checkDuplicateUsernameOrEmail,
+      verifySignUp.checkUserDuplicateUsernameOrEmail,
     ],
     controller.signup,
   );
@@ -15,4 +15,10 @@ module.exports = (app) => {
   app.post('/api/auth/signin', controller.signin);
 
   app.post('/api/auth/refreshtoken', controller.refreshToken);
+
+  app.get(
+    '/api/auth/moderators',
+    [authJwt.verifyTokens, authJwt.isAdmin],
+    controller.getModerators,
+  );
 };

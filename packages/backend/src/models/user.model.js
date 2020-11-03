@@ -9,6 +9,9 @@ module.exports = (sequelize, Sequelize) => {
     role: {
       type: Sequelize.STRING,
     },
+    name: {
+      type: Sequelize.STRING,
+    },
   });
 
   return User;

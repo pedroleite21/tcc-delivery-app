@@ -8,7 +8,7 @@ import parseISO from 'date-fns/parseISO';
 import format from 'date-fns/format';
 import groupBy from 'lodash.groupby';
 import { useQuery } from 'react-query';
-import useHourCallback from '../components/use_hour_callback';
+import useHourCallback from '../hooks/use_hour_callback';
 import styled from '../components/styled';
 import { useTheme } from '@material-ui/core/styles';
 import { getOngoingOrders, getTodaysOrders, Order } from '../api/orders';
@@ -81,33 +81,39 @@ export default function Dashboard() {
 
   return (
     <>
-      <OrdersDiv>
-        <NumberOrders>
-          <Typography
-            variant="h2"
-            style={{ color: theme.palette.primary.main }}
-          >
-            {todaysOrders?.count}
-          </Typography>
-          <Typography>
-            {todaysOrders?.count > 1 ? 'Pedidos realizados' : 'Pedido realizado'} hoje.
-          </Typography>
-        </NumberOrders>
-        <ChartDiv>
-          <ResponsiveContainer
-            width="100%"
-            height={200}
-          >
-            <BarChart data={ordersData}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="value" fill={theme.palette.secondary.main} maxBarSize={40} />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartDiv>
-      </OrdersDiv>
+      <Typography variant="h3" component="h2" gutterBottom>
+        Bem vindo!
+      </Typography>
+      {todaysOrders?.count > 0 && (
+        <OrdersDiv>
+          <NumberOrders>
+            <Typography
+              variant="h2"
+              component="span"
+              style={{ color: theme.palette.primary.main }}
+            >
+              {todaysOrders?.count}
+            </Typography>
+            <Typography>
+              {todaysOrders?.count > 1 ? 'Pedidos realizados' : 'Pedido realizado'} hoje.
+            </Typography>
+          </NumberOrders>
+          <ChartDiv>
+            <ResponsiveContainer
+              width="100%"
+              height={200}
+            >
+              <BarChart data={ordersData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="value" fill={theme.palette.secondary.main} maxBarSize={40} />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartDiv>
+        </OrdersDiv>
+      )}
       <OrdersCards data={ongoingOrders} />
     </>
   );

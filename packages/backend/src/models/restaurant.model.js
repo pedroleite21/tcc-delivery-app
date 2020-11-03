@@ -8,6 +8,10 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.TIME,
       allowNull: false,
     },
+    minimum_order: {
+      type: Sequelize.DECIMAL(5, 2),
+      defaultValue: '0.00',
+    },
     closesAt: {
       type: Sequelize.TIME,
       allowNull: false,

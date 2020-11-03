@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { navigate } from 'gatsby';
 import { setUserInfo as loginSetUserInfo, getUserInfo } from '../api/login';
-import { LoginAsyncStorage } from '../api/api';
+import { LoginAsyncStorage, LOGIN_KEY_INITIAL } from '../api/api';
 import socketIOClient from 'socket.io-client';
 
 const socket_url = process.env.GATSBY_API_URL || 'http://localhost:3000';
@@ -11,6 +11,7 @@ interface AuthContextInterface extends Partial<Omit<LoginAsyncStorage, 'accessTo
   isLoading?: boolean;
   isLogged?: boolean;
   setUserInfo?: (d: LoginAsyncStorage) => void;
+  signOutUser?: () => void;
 }
 
 type AuthContextProps = AuthContextInterface;
@@ -23,7 +24,7 @@ type AuthContextProviderProps = {
 
 export function AuthContextProvider({ children }: AuthContextProviderProps) {
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
-  const [isLogged, setIsLogged] = React.useState<boolean>(true);
+  const [isLogged, setIsLogged] = React.useState<boolean>(false);
   const [userId, setUserId] = React.useState<string | null | number>(null);
   const [role, setRole] = React.useState<'admin' | 'moderator' | null>(null);
   const socketRef = React.useRef(null);
@@ -33,6 +34,13 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
     setIsLogged(true);
     setRole(d.role);
     setUserId(d.userId);
+  }, []);
+
+  const signOutUser = React.useCallback(() => {
+    loginSetUserInfo(LOGIN_KEY_INITIAL);
+    setIsLogged(false);
+    setRole(null);
+    setUserId(null);
   }, []);
 
   React.useLayoutEffect(() => {
@@ -82,6 +90,7 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
         isLogged,
         role,
         setUserInfo,
+        signOutUser,
         userId,
       }}
     >

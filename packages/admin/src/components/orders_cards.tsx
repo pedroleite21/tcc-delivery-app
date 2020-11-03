@@ -35,7 +35,7 @@ const InfoView = styled.div(({ theme }) => ({
   flexDirection: 'column',
 }));
 
-function RenderItems({ items }) {
+export function RenderItems({ items }) {
   return (
     <div
       // @ts-ignore 

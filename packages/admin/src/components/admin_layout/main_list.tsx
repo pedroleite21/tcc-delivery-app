@@ -5,7 +5,9 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListSubheader from '@material-ui/core/ListSubheader';
 import HomeIcon from '@material-ui/icons/Home';
+import PersonIcon from '@material-ui/icons/People';
 import RestaurantMenuIcon from '@material-ui/icons/RestaurantMenu';
+import SettingsIcon from '@material-ui/icons/Settings';
 import ShoppingCartIcon from '@material-ui/icons/ShoppingCart';
 import { LinkMenuItem } from './user_profile';
 
@@ -30,6 +32,18 @@ const mainList = (
         <RestaurantMenuIcon />
       </ListItemIcon>
       <ListItemText primary="Cardápio" />
+    </LinkMenuItem>
+    <LinkMenuItem to="/admin/moderators" admin>
+      <ListItemIcon>
+        <PersonIcon />
+      </ListItemIcon>
+      <ListItemText primary="Moderadores" />
+    </LinkMenuItem>
+    <LinkMenuItem to="/admin/settings" admin>
+      <ListItemIcon>
+        <SettingsIcon />
+      </ListItemIcon>
+      <ListItemText primary="Configurações" />
     </LinkMenuItem>
   </List>
 );

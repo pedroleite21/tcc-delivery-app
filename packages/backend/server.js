@@ -23,6 +23,7 @@ const itemRoutes = require('./src/routes/item.routes');
 const orderRoutes = require('./src/routes/order.routes');
 const uploadRoutes = require('./src/routes/upload.routes');
 const paymentRoutes = require('./src/routes/payment.routes');
+const restaurantRoutes = require('./src/routes/restaurant.routes');
 
 async function startServer() {
   const app = express();
@@ -73,6 +74,7 @@ async function startServer() {
   orderRoutes(app, io);
   uploadRoutes(app);
   paymentRoutes(app);
+  restaurantRoutes(app);
 }
 
 startServer();

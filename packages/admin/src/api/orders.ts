@@ -28,6 +28,22 @@ export async function getTodaysOrders() {
   return data;
 }
 
+export async function getOrders(_, query) {
+  const { accessToken } = getUserInfo();
+
+  const { data } = await api.get(
+    '/orders',
+    {
+      params: query,
+      headers: {
+        'x-access-token': accessToken,
+      }
+    },
+  );
+
+  return data;
+}
+
 export async function getOngoingOrders() {
   const { accessToken } = getUserInfo();
 

@@ -215,10 +215,9 @@ export default function OptionItemModal(props: OptionItemModalProps) {
             <Grid item xs={4}>
               <Typography variant="button">Preço Adicional</Typography>
             </Grid>
-            <Grid item xs={1}>
-              <Typography variant="button">Pausado</Typography>
+            <Grid item xs={2}>
+              <Typography variant="button" id="checkbox-label">Pausado</Typography>
             </Grid>
-            <Grid item xs={1} />
             {items.map((v, i) => (
               <>
                 <Grid item xs={6}>
@@ -239,8 +238,15 @@ export default function OptionItemModal(props: OptionItemModalProps) {
                     value={v.addPrice}
                   />
                 </Grid>
-                <Grid item xs={1} />
-                <Grid item xs={1} />
+                <Grid item xs={2}>
+                  <Checkbox
+                    aria-labelledby="checkbox-label"
+                    // checked={info.required}
+                    color="primary"
+                    name="paused"
+                    // onChange={handleChange}
+                  />
+                </Grid>
               </>
             ))}
           </Grid>

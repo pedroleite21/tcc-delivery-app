@@ -11,6 +11,7 @@ import PersonIcon from '@material-ui/icons/Person';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SignOutIcon from '@material-ui/icons/PowerSettingsNew';
 import styled from '../styled';
+import { useAuthContext } from '../../contexts/auth_context';
 
 const ListItemIconStyled = styled(ListItemIcon)({
   minWidth: 36,
@@ -18,16 +19,23 @@ const ListItemIconStyled = styled(ListItemIcon)({
 
 interface LinkMenuItemProps extends MenuItemProps {
   to: string;
+  admin?: boolean;
 }
 
 export const LinkMenuItem = React.forwardRef((
-  { to, children, ...rest }: LinkMenuItemProps, ref,
-) => (
-  // @ts-ignore
-  <MenuItem button ref={ref} component={Link} to={to} tabIndex={0} {...rest} >
-    {children}
-  </MenuItem>
-));
+  { to, children, admin = false, ...rest }: LinkMenuItemProps, ref,
+) => {
+  const { role } = useAuthContext();
+
+  if (admin && role !== 'admin') return null;
+
+  return (
+    // @ts-ignore
+    <MenuItem button ref={ref} component={Link} to={to} tabIndex={0} {...rest} >
+      {children}
+    </MenuItem>
+  );
+});
 
 type UserProfileProps = {
   userId: string | number | null;
@@ -37,11 +45,16 @@ function UserProfile({ userId }: UserProfileProps) {
   const [menuOpen, setMenuOpen] = React.useState<boolean>(false);
   const anchorRef = React.useRef<null | HTMLButtonElement>(null);
 
+  const { signOutUser } = useAuthContext();
+
   const handleClick = () => {
     setMenuOpen(true);
   };
 
-  const handleClose = () => {
+  const handleClose = (signOut = false) => {
+    if (signOut === true) {
+      signOutUser();
+    }
     setMenuOpen(false);
   }
 
@@ -78,30 +91,30 @@ function UserProfile({ userId }: UserProfileProps) {
           horizontal: 'center',
         }}
       >
-        <LinkMenuItem onClick={handleClose} to="/admin/home">
+        <LinkMenuItem onClick={() => handleClose()} to="/admin/home">
           <ListItemIconStyled>
             <HomeIcon />
           </ListItemIconStyled>
           <ListItemText primary="Início" />
         </LinkMenuItem>
-        <LinkMenuItem onClick={handleClose} to="/admin/profile">
+        <LinkMenuItem onClick={() => handleClose()} to="/admin/profile">
           <ListItemIconStyled>
             <PersonIcon />
           </ListItemIconStyled>
           <ListItemText primary="Perfil" />
         </LinkMenuItem>
-        <LinkMenuItem onClick={handleClose} to="/admin/settings">
+        <LinkMenuItem admin onClick={() => handleClose()} to="/admin/settings">
           <ListItemIconStyled>
             <SettingsIcon />
           </ListItemIconStyled>
           <ListItemText primary="Configurações" />
         </LinkMenuItem>
-        <LinkMenuItem onClick={handleClose} to="/admin/sign_out">
+        <MenuItem button onClick={() => handleClose(true)}>
           <ListItemIconStyled>
             <SignOutIcon />
           </ListItemIconStyled>
           <ListItemText primary="Sair" />
-        </LinkMenuItem>
+        </MenuItem>
       </Menu>
     </>
   );
