@@ -11,6 +11,12 @@ module.exports = (app) => {
     items.createItem,
   );
 
+  router.put(
+    '/:id',
+    [authJwt.verifyTokens, authJwt.isAdmin],
+    items.updateItem,
+  );
+
   router.get('/', [authJwt.verifyTokens], items.findAll);
 
   router.get('/featured', [authJwt.verifyTokens], items.findFeatured);

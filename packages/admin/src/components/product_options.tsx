@@ -70,7 +70,17 @@ export default function ProductOptions(props: ProductOptionsProps) {
 
   const saveOptionsItens = (d: ProductOption) => {
     if (d.id) {
-      console.log('merge');
+      const index = options.findIndex(({ id }) => id === d.id);
+      if (index !== -1) {
+        setOptions((prevOptions) => {
+          const newOptions = update(
+            prevOptions,
+            { [index]: { $merge: d } }
+          );
+          onOptionsChange?.(newOptions);
+          return newOptions;
+        });
+      }
     } else {
       setOptions((prevOptions) => {
         const newOptions = update(

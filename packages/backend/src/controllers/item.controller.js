@@ -1,3 +1,4 @@
+const asyncHandler = require('express-async-handler');
 const db = require('../models');
 
 const Item = db.items;
@@ -57,6 +58,72 @@ exports.createItem = (req, res) => {
       });
     });
 };
+
+exports.updateItem = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { itemOptions, userId, userEmail, ...itemInfo } = req.body;
+  try {
+    const item = await Item.findByPk(id);
+
+    if (!item) {
+      return res.status(404).send({
+        message: `Item with id = ${id} not found`,
+      });
+    }
+
+    await item.update(itemInfo);
+
+    await Promise.all(
+      itemOptions.forEach(async (option) => {
+        const {
+          createdAt,
+          id: opId,
+          itemId,
+          items,
+          optionId,
+          updatedAt,
+          ...info
+        } = option;
+
+        const itemOp = await ItemOptions.findByPk(opId);
+
+        if (itemOp) {
+          await itemOp.update(info);
+
+          if (Array.isArray(items) && items.length > 0) {
+            items.forEach(async (opItem) => {
+              const {
+                createdAt: _createdAt,
+                id: opItemId,
+                itemId: _itemId,
+                optionId: _optionId,
+                updatedAt: _updatedAt,
+                itemOptionId,
+                ...rest
+              } = opItem;
+
+              const opItemInstance = await OptionsItems.findByPk(
+                opItemId,
+              );
+
+              if (opItemInstance) {
+                await opItemInstance.update(rest);
+              }
+            });
+          }
+        }
+      }),
+    );
+
+    return res.send({
+      message: 'Update com sucesso',
+    });
+  } catch (err) {
+    return res.status(500).send({
+      message: `Error updating Item with id ${id}`,
+    });
+  }
+});
 
 exports.findAll = (req, res) => {
   Item.findAll()

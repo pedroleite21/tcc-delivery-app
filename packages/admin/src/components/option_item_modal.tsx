@@ -64,7 +64,7 @@ export default function OptionItemModal(props: OptionItemModalProps) {
       setItems(items);
       setInfo(rest);
     }
-  }, []);
+  }, [option]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, checked } = event.target;
@@ -95,7 +95,7 @@ export default function OptionItemModal(props: OptionItemModalProps) {
   const handleSave = () => {
     onSave?.({
       ...info,
-      id: null,
+      id: option?.id,
       items,
     });
     setInfo(initForm);
@@ -103,10 +103,11 @@ export default function OptionItemModal(props: OptionItemModalProps) {
   }
 
   const handleOptionChange = (i: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
+    const { name, value, checked } = event.target;
+    const newValue = name === 'paused' ? checked : value;
     setItems((prevItems) => {
       const newItems = update(prevItems, {
-        [i]: { $merge: { [name]: value } }
+        [i]: { $merge: { [name]: newValue } }
       });
       return newItems;
     });
@@ -241,10 +242,10 @@ export default function OptionItemModal(props: OptionItemModalProps) {
                 <Grid item xs={2}>
                   <Checkbox
                     aria-labelledby="checkbox-label"
-                    // checked={info.required}
+                    checked={v.paused}
                     color="primary"
                     name="paused"
-                    // onChange={handleChange}
+                    onChange={handleOptionChange(i)}
                   />
                 </Grid>
               </>

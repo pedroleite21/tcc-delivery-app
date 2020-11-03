@@ -64,6 +64,20 @@ export async function addProduct(data: AddProductProps) {
   )
 }
 
+export async function editProduct(id: number|string, data: AddProductProps) {
+  const { accessToken } = getUserInfo();
+
+  return await api.put(
+    `/items/${id}`,
+    data,
+    {
+      headers: {
+        'x-access-token': accessToken,
+      }
+    }
+  )
+}
+
 type UploadImageResponse = {
   imageUrl: string;
   message: string;

@@ -12,7 +12,7 @@ import { RouteComponentProps } from '@reach/router';
 import { useQuery } from 'react-query';
 import { useForm, Controller } from 'react-hook-form';
 import styled from '../components/styled';
-import { addProduct, getProduct, ProductOption, uploadImage } from '../api/products';
+import { addProduct, editProduct, getProduct, ProductOption, uploadImage } from '../api/products';
 import { getCategories } from '../api/categories';
 import ImageUploader from '../components/image_uploader';
 import ProductOptions from '../components/product_options';
@@ -56,34 +56,8 @@ export default function Product(props: RouteComponentProps & { productId?: strin
     control,
   } = useForm<FoodTypes>({ defaultValues: initData });
   const [initialImage, setInitialImage] = React.useState<string>(undefined);
+  const [basePrice, setBasePrice] = React.useState<string>('');
   const [itemOptions, setItemOptions] = React.useState<ProductOption[]>(null);
-
-  const onSubmit = async (data: FoodTypes) => {
-    try {
-      if (productId) {
-        console.log('editar');
-      } else {
-        const imageData = await uploadImage(data.image);
-
-        await addProduct({
-          ...data,
-          basePrice: '20.90',
-          image: imageData ? imageData.imageUrl : null,
-          itemOptions,
-        });
-      }
-    } catch (err) {
-      console.log(err);
-    }
-
-    // console.log(data, product);
-    // if (data.image
-    //   && product.image !== data.image
-    // ) {
-    //   console.log('vim pra cá');
-    //   // const { imageUrl } = await uploadImage(data.image);
-    // }
-  }
 
   const { data: categories, isLoading } = useQuery('categories', getCategories);
   const { data: product } = useQuery(
@@ -94,6 +68,37 @@ export default function Product(props: RouteComponentProps & { productId?: strin
     },
   );
 
+  const onSubmit = async (data: FoodTypes) => {
+    try {
+      if (productId) {
+        let imageData;
+        if (typeof data.image === 'object' && data.image.length === 1) {
+          imageData = await uploadImage(data.image);
+        }
+
+        const productData = {
+          ...data,
+          basePrice: parseFloat(basePrice).toFixed(2),
+          image: imageData ? imageData.imageUrl : product?.image,
+          itemOptions,
+        }
+
+        await editProduct(productId, productData);
+      } else {
+        const imageData = await uploadImage(data.image);
+
+        await addProduct({
+          ...data,
+          basePrice,
+          image: imageData ? imageData.imageUrl : null,
+          itemOptions,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   React.useEffect(() => {
     if (product) {
       console.log(product);
@@ -102,8 +107,8 @@ export default function Product(props: RouteComponentProps & { productId?: strin
       setValue('description', product.description);
       setValue('featured', product.featured);
       setValue('name', product.name);
+      setBasePrice(product.basePrice);
       if (product.options) {
-        console.log('oi');
         setItemOptions(product.options);
       }
     }
@@ -196,6 +201,8 @@ export default function Product(props: RouteComponentProps & { productId?: strin
                 InputProps={{
                   inputComponent: NumberTextField as any,
                 }}
+                onChange={(e) => setBasePrice(e.target.value)}
+                value={basePrice}
               />
             </Grid>
             <Grid item xs={12}>
