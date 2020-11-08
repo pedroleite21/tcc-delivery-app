@@ -4,7 +4,7 @@ import { setUserInfo as loginSetUserInfo, getUserInfo } from '../api/login';
 import { LoginAsyncStorage, LOGIN_KEY_INITIAL } from '../api/api';
 import socketIOClient from 'socket.io-client';
 
-const socket_url = process.env.GATSBY_API_URL || 'http://localhost:3000';
+const socket_url = process.env.GATSBY_API_SOCKET_URL || 'http://localhost:3000';
 const MESSAGE_KEY = 'new_order';
 
 interface AuthContextInterface extends Partial<Omit<LoginAsyncStorage, 'accessToken'>> {
