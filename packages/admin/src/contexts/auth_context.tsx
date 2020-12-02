@@ -62,7 +62,7 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
       socket.connect();
 
       socket.on(MESSAGE_KEY, (received) =>
-        alert('Message received: ' + received),
+        alert(`Pedido #${received} recebido!`),
       );
 
       socket.on('disconnect', (reason) => {
